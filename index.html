@@ -1,0 +1,1742 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARKANUM | Conan Exiles Voice RP – Labyrinth des verrückten Magiers</title>
+    <meta name="description" content="Tauche ein in ARKANUM: Das arkan-alchemistische Conan Exiles Voice RP Portal der Sphäre Anubia. Erkunde das lebendige Labyrinth des Verrückten Magiers mit 18 Völkern, 2-Säulen-Wirtschaft und tiefgründigem Voice Roleplay.">
+    <meta name="keywords" content="ARKANUM, Conan Exiles Voice RP, Conan RP Server Deutsch, Labyrinth des verrückten Magiers, Sphäre Anubia, Conan Voice Roleplay">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="ARKANUMLOGO.png">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "ARKANUM | Conan Exiles Voice RP Server",
+          "url": "https://www.arkanum-rp.de",
+          "description": "Deutscher Conan Exiles Voice RP Server im High- und Dark-Fantasy Setting der Sphäre Anubia. Erkunde das Labyrinth des Verrückten Magiers mit 18 Völkern und persistentem Season-RP.",
+          "inLanguage": "de-DE"
+        },
+        {
+          "@type": "GameServer",
+          "name": "ARKANUM – [GER] Conan Voice RP | Sphäre Anubia",
+          "game": {
+            "@type": "VideoGame",
+            "name": "Conan Exiles",
+            "genre": ["Role-playing game", "Survival game", "Fantasy"]
+          },
+          "serverStatus": "https://schema.org/Online",
+          "inLanguage": "de-DE"
+        }
+      ]
+    }
+    </script>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind Configuration -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        void: {
+                            950: '#000000',
+                            900: '#02040a',
+                            800: '#030712',
+                            700: '#060f24',
+                            600: '#0b1736',
+                        },
+                        mana: {
+                            50: '#ecfeff',
+                            100: '#cffafe',
+                            200: '#a5f3fc',
+                            300: '#67e8f9',
+                            400: '#22d3ee',
+                            500: '#00e5ff',
+                            600: '#0891b2',
+                            700: '#0e7490',
+                            800: '#155e75',
+                            900: '#164e63',
+                        },
+                        ice: {
+                            500: '#0284c7',
+                            400: '#38bdf8',
+                            300: '#7dd3fc',
+                            200: '#bae6fd',
+                        },
+                        silver: {
+                            500: '#64748b',
+                            400: '#94a3b8',
+                            300: '#cbd5e1',
+                            200: '#e2e8f0',
+                            100: '#f8fafc',
+                        }
+                    },
+                    fontFamily: {
+                        magic: ['Cinzel', 'serif'],
+                        lore: ['Cormorant Garamond', 'Georgia', 'serif'], 
+                    },
+                    animation: {
+                        'materialize': 'materialize 0.5s ease-out forwards', 
+                        'sigil-pulse': 'sigil-pulse 3s ease-in-out infinite',
+                        'spin-slow': 'spin 14s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                        'shake': 'shake 0.1s ease-in-out infinite'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-void-950 text-silver-300 selection:bg-cyan-500 selection:text-black relative h-screen w-screen overflow-hidden">
+
+    <!-- SVG Filter für Blitze & Verzerrung -->
+    <svg class="hidden absolute w-0 h-0" aria-hidden="true">
+        <filter id="lightning-displacement">
+            <feTurbulence type="fractalNoise" baseFrequency="0.015 0.3" numOctaves="3" result="noise" />
+            <feDisplacementMap in="SourceGraphic" in2="noise" scale="45" xChannelSelector="R" yChannelSelector="G" />
+        </filter>
+    </svg>
+
+    <div class="world-bg"></div>
+    <div class="dust-overlay"></div>
+
+    <!-- FX Canvas (Astral-Nebel & Mana-Funken) -->
+    <canvas id="bg-canvas" class="fixed inset-0 z-0 opacity-90 pointer-events-none gpu-accel"></canvas>
+
+    <!-- EASTER EGG: ARKANER GEISTER-SCHWARM (Flüchtige Geister) -->
+    <div id="ghost-container" class="fixed inset-0 pointer-events-none z-30 overflow-hidden"></div>
+
+    <!-- DYNAMISCHE INTERAKTIONS-AURA (Hover-Animation am Cursor) -->
+    <div id="cursor-aura" class="pointer-events-none" aria-hidden="true"><div class="aura-pulse"></div></div>
+
+    <!-- CRYO-MANA CONDUITS (Seitliche Entladungen) -->
+    <div class="rift-sidebar left gpu-accel">
+        <div class="magic-lightning"></div>
+    </div>
+    <div class="rift-sidebar right gpu-accel">
+        <div class="magic-lightning"></div>
+    </div>
+
+    <!-- ARKANER RESONATOR (Widget Unten Links mit Dreiecks-Siegellogo) -->
+    <div class="absolute bottom-16 left-5 md:left-10 w-16 h-16 md:w-20 md:h-20 rounded-full border border-cyan-900/60 bg-black/85 flex items-center justify-center shadow-[0_0_25px_rgba(0,229,255,0.25)] z-40 backdrop-blur-md pointer-events-none gpu-accel cursor-pointer" id="rune-container">
+        <!-- SVG-Nachbildung des Siegels -->
+        <svg id="rune-compass" class="w-10 h-10 md:w-12 md:h-12 text-cyan-400 ease-linear opacity-90" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.8">
+            <!-- Äußerer Runenkreis -->
+            <circle cx="50" cy="50" r="46" stroke="#00e5ff" stroke-width="1" stroke-dasharray="3 2" opacity="0.6"/>
+            <circle cx="50" cy="50" r="41" stroke="#38bdf8" stroke-width="1.2"/>
+            <circle cx="50" cy="50" r="34" stroke="#ffffff" stroke-width="0.8" stroke-dasharray="6 3" opacity="0.8"/>
+            <!-- Dreieck -->
+            <polygon points="50,18 78,66 22,66" stroke="#ffffff" stroke-width="1.6" fill="rgba(0, 229, 255, 0.05)"/>
+            <!-- 3 Sphärenknoten (ψ, 7, 8) -->
+            <circle cx="50" cy="33" r="8.5" stroke="#00e5ff" stroke-width="1.2" fill="#000000"/>
+            <text x="50" y="37" font-size="9" text-anchor="middle" fill="#ffffff" font-family="serif">ψ</text>
+            <circle cx="37" cy="55" r="8.5" stroke="#00e5ff" stroke-width="1.2" fill="#000000"/>
+            <text x="37" y="58" font-size="8" text-anchor="middle" fill="#ffffff" font-family="serif">7</text>
+            <circle cx="63" cy="55" r="8.5" stroke="#00e5ff" stroke-width="1.2" fill="#000000"/>
+            <text x="63" y="58" font-size="8" text-anchor="middle" fill="#ffffff" font-family="serif">8</text>
+        </svg>
+        <span class="absolute -bottom-6 text-[10px] text-cyan-300 font-lore tracking-[0.15em] bg-black/80 px-2 py-0.5 rounded border border-cyan-900/60 uppercase">Resonanz</span>
+    </div>
+
+    <!-- FIELD INFO MODAL -->
+    <div id="field-info-modal" class="info-modal-bg hidden-modal fixed inset-0 flex items-center justify-center p-4 z-[300]">
+        <div class="rift-panel p-8 max-w-md w-full relative border-cyan-800/80 rounded-sm">
+            <button aria-label="Schließen" onclick="closeInfoModal()" class="absolute top-4 right-4 text-gray-400 hover:text-cyan-300 transition-colors"><i data-lucide="x" class="w-6 h-6"></i></button>
+            <div class="flex items-center gap-3 mb-4 border-b border-cyan-950 pb-4">
+                <i data-lucide="book-marked" class="text-cyan-400 w-6 h-6"></i>
+                <h3 id="info-modal-title" class="font-magic text-2xl text-white text-glow-mana m-0">Wissen</h3>
+            </div>
+            <p id="info-modal-text" class="text-slate-300 font-lore text-lg leading-relaxed"></p>
+            <button onclick="closeInfoModal()" class="w-full mt-8 bg-black/60 border border-cyan-800 text-cyan-300 hover:border-cyan-400 hover:text-white font-magic text-base py-2.5 tracking-widest transition-colors uppercase">
+                Schriftrolle schließen
+            </button>
+        </div>
+    </div>
+
+    <!-- IMAGE LIGHTBOX MODAL -->
+    <div id="image-modal" class="info-modal-bg hidden-modal fixed inset-0 flex items-center justify-center p-4 z-[400]" onclick="closeImageModal()">
+        <button aria-label="Schließen" onclick="closeImageModal()" class="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors z-50">
+            <i data-lucide="x" class="w-9 h-9 drop-shadow-md"></i>
+        </button>
+        <div class="relative max-w-7xl w-full max-h-[90vh] flex flex-col items-center justify-center" onclick="event.stopPropagation()">
+           <img id="modal-img" src="" alt="Großansicht" class="max-w-full max-h-[82vh] object-contain border border-cyan-900 shadow-[0_0_50px_rgba(0,229,255,0.25)] bg-black/60">
+        </div>
+    </div>
+
+    <!-- EPIC SIGIL GATE LOADER (PORTAL-EINTRITT) -->
+    <div id="rift-loader" class="fixed inset-0 z-[100] flex flex-col items-center justify-center">
+        <!-- Shockwave Expansion Ring -->
+        <div id="sigil-shockwave" class="absolute w-44 h-44 rounded-full border-2 border-cyan-300 pointer-events-none opacity-0 shadow-[0_0_80px_#00e5ff]"></div>
+        
+        <!-- Sigil Visual Stage -->
+        <div id="loader-sigil-stage" class="relative w-64 h-64 md:w-80 md:h-80 flex items-center justify-center transition-all duration-700">
+            <!-- Concentric Counter-Rotating Rings -->
+            <svg class="absolute inset-0 w-full h-full sigil-spin-outer pointer-events-none" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="95" stroke="#00e5ff" stroke-width="1.5" stroke-dasharray="8 4 2 4" fill="none" opacity="0.75"/>
+                <circle cx="100" cy="100" r="88" stroke="#38bdf8" stroke-width="1" fill="none" opacity="0.5"/>
+            </svg>
+            <svg class="absolute inset-0 w-full h-full sigil-spin-inner pointer-events-none" viewBox="0 0 200 200">
+                <circle cx="100" cy="100" r="78" stroke="#ffffff" stroke-width="1.8" stroke-dasharray="5 3" fill="none" opacity="0.85"/>
+                <circle cx="100" cy="100" r="70" stroke="#00e5ff" stroke-width="1" fill="none" opacity="0.6"/>
+            </svg>
+
+            <!-- Inner Triangle with 3 Sphere Nodes -->
+            <svg class="w-48 h-48 md:w-56 md:h-56 sigil-pulsing" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                <polygon points="50,12 85,74 15,74" stroke="#ffffff" stroke-width="2.5" fill="rgba(0, 229, 255, 0.08)"/>
+                <!-- Upper Node (ψ) -->
+                <circle cx="50" cy="30" r="10" stroke="#00e5ff" stroke-width="1.8" fill="#000000" class="glyph-pulse"/>
+                <text x="50" y="34" font-size="11" text-anchor="middle" fill="#ffffff" font-family="serif" font-weight="bold">ψ</text>
+                <!-- Left Node (7) -->
+                <circle cx="34" cy="58" r="10" stroke="#00e5ff" stroke-width="1.8" fill="#000000" class="glyph-pulse"/>
+                <text x="34" y="62" font-size="11" text-anchor="middle" fill="#ffffff" font-family="serif" font-weight="bold">7</text>
+                <!-- Right Node (8) -->
+                <circle cx="66" cy="58" r="10" stroke="#00e5ff" stroke-width="1.8" fill="#000000" class="glyph-pulse"/>
+                <text x="66" y="62" font-size="11" text-anchor="middle" fill="#ffffff" font-family="serif" font-weight="bold">8</text>
+            </svg>
+        </div>
+
+        <div id="loader-text" class="text-center space-y-3 mt-8 z-20 w-full px-4 transition-opacity duration-300">
+            <h3 class="font-magic text-3xl md:text-5xl text-white tracking-[0.25em] text-glow-mana">DAS LABYRINTH ERWACHT</h3>
+            <p class="font-lore text-cyan-200 text-lg md:text-xl italic tracking-wider">Der Verrückte Magier prüft Geist, Seele und Standhaftigkeit...</p>
+        </div>
+    </div>
+
+    <!-- MAIN NAVIGATION -->
+    <nav id="main-nav" style="display: none;" class="fixed top-0 left-0 w-full z-50 h-20 bg-void-950/85 border-b border-cyan-950 backdrop-blur-md shadow-[0_5px_30px_rgba(0,0,0,0.85)]">
+        <div class="max-w-7xl mx-auto px-4 h-full flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center gap-3 cursor-pointer group" onclick="switchPage('home')">
+                <div class="relative w-10 h-10 rounded-full border border-cyan-500/50 flex items-center justify-center bg-black/60 group-hover:border-cyan-400 group-hover:shadow-[0_0_15px_#00e5ff] transition-all">
+                    <img src="ARKANUMLOGO.png" alt="ARKANUM Siegel" class="w-8 h-8 object-cover rounded-full">
+                </div>
+                <div>
+                    <h1 class="font-magic text-2xl text-white tracking-[0.2em] group-hover:text-cyan-300 transition-colors">ARKANUM</h1>
+                    <div class="text-[10px] tracking-[0.25em] text-cyan-400 font-magic uppercase -mt-1">Sphäre Anubia</div>
+                </div>
+            </div>
+
+            <!-- Desktop Nav Items -->
+            <div class="hidden lg:flex items-center gap-1">
+                <button onclick="switchPage('home')" class="nav-btn px-3 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="home">Pforte</button>
+                <button onclick="switchPage('classes')" class="nav-btn px-3 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="classes">Völker & Pfade</button>
+                <button onclick="switchPage('lore')" class="nav-btn px-3 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="lore">Chronik</button>
+                <button onclick="switchPage('gallery')" class="nav-btn px-3 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="gallery">Gewölbe</button>
+                <button onclick="switchPage('rules')" class="nav-btn px-3 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="rules">Gesetze</button>
+                <button onclick="switchPage('faq')" class="nav-btn px-3 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="faq">Altes Wissen</button>
+                <button onclick="switchPage('char')" class="nav-btn px-3.5 py-1.5 font-magic text-xs tracking-widest uppercase text-slate-400 hover:text-white border-b-2 border-transparent transition-all" data-target="char">Inschrift</button>
+            </div>
+
+            <!-- Connect Action Button -->
+            <div class="hidden md:block">
+                <button onclick="switchPage('connect')" class="bg-black/60 hover:bg-white/10 text-white font-magic text-xs tracking-[0.2em] px-5 py-2 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.05)] transition-all hover:border-cyan-400 uppercase cursor-pointer">
+                    Erwachen
+                </button>
+            </div>
+
+            <!-- Mobile Hamburger Toggle -->
+            <button aria-label="Menü öffnen" onclick="toggleMobile()" class="lg:hidden text-cyan-400 hover:text-white">
+                <i data-lucide="menu" class="w-7 h-7"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MOBILE MENU -->
+    <div id="mobile-menu" class="fixed inset-0 z-[60] bg-void-950/95 backdrop-blur-xl flex flex-col items-center justify-center space-y-6 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <button onclick="navigateFromMobile('home')" class="text-xl font-magic tracking-widest text-cyan-400 hover:scale-105 transition-transform uppercase">Pforte</button>
+        <button onclick="navigateFromMobile('classes')" class="text-xl font-magic tracking-widest text-gray-300 hover:text-white hover:scale-105 transition-transform uppercase">Völker & Pfade</button>
+        <button onclick="navigateFromMobile('lore')" class="text-xl font-magic tracking-widest text-gray-300 hover:text-white hover:scale-105 transition-transform uppercase">Chronik</button>
+        <button onclick="navigateFromMobile('gallery')" class="text-xl font-magic tracking-widest text-gray-300 hover:text-white hover:scale-105 transition-transform uppercase">Gewölbe</button>
+        <button onclick="navigateFromMobile('rules')" class="text-xl font-magic tracking-widest text-gray-300 hover:text-white hover:scale-105 transition-transform uppercase">Gesetze</button>
+        <button onclick="navigateFromMobile('faq')" class="text-xl font-magic tracking-widest text-gray-300 hover:text-white hover:scale-105 transition-transform uppercase">Altes Wissen</button>
+        <button onclick="navigateFromMobile('char')" class="text-xl font-magic tracking-widest text-cyan-300 hover:scale-105 transition-transform uppercase">Inschrift</button>
+        <button onclick="navigateFromMobile('connect')" class="text-xl font-magic tracking-widest text-white bg-black/60 border border-cyan-800 px-7 py-2 hover:bg-cyan-950 transition-colors uppercase">Erwachen</button>
+        <div class="h-[1px] w-24 bg-cyan-900/50"></div>
+        <button onclick="navigateFromMobile('legal-imprint')" class="text-base font-lore text-slate-400 hover:text-white">Impressum</button>
+        <button onclick="navigateFromMobile('legal-privacy')" class="text-base font-lore text-slate-400 hover:text-white">Datenschutz</button>
+        <button aria-label="Menü schließen" onclick="toggleMobile()" class="absolute top-6 right-6 text-gray-400 hover:text-white"><i data-lucide="x" class="w-8 h-8"></i></button>
+    </div>
+
+    <!-- MAIN APP CANVAS -->
+    <main class="relative w-full h-full z-10">
+        
+        <!-- ================= PAGE 1: PORTAL (LANDING / ERSTBESUCH) ================= -->
+        <div id="portal" class="page-container">
+            <div class="flex flex-col items-center justify-center w-full min-h-[90vh] px-6 sm:px-10 relative mt-6">
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] bg-cyan-500/10 blur-[180px] rounded-full pointer-events-none z-0"></div>
+                
+                <!-- Siegel Logo Visual Anchor -->
+                <div class="relative inline-block mb-8 group z-10">
+                    <div class="absolute inset-0 bg-cyan-500/25 blur-3xl rounded-full scale-110 animate-pulse"></div>
+                    <img src="ARKANUMLOGO.png" alt="ARKANUM Siegel Logo - Labyrinth des verrückten Magiers" class="w-52 h-52 sm:w-64 sm:h-64 md:w-80 md:h-80 object-cover rounded-full mx-auto relative z-10 shadow-[0_0_70px_rgba(0,229,255,0.4)] border-2 border-cyan-500/40">
+                </div>
+
+                <h1 class="font-magic text-5xl sm:text-7xl md:text-9xl text-white text-glow-mana leading-tight mb-2 z-10 tracking-[0.2em] text-center">ARKANUM</h1>
+                
+                <div class="flex items-center justify-center gap-2 sm:gap-4 opacity-90 mb-6 sm:mb-8 z-10 w-full">
+                    <div class="h-[1px] flex-grow max-w-[40px] md:max-w-[100px] bg-gradient-to-r from-transparent to-cyan-500/70"></div>
+                    <h2 class="font-magic text-base sm:text-xl md:text-3xl text-cyan-300 tracking-[0.25em] text-glow-frost text-center uppercase whitespace-nowrap">Sphäre Anubia • Das Labyrinth erwacht</h2>
+                    <div class="h-[1px] flex-grow max-w-[40px] md:max-w-[100px] bg-gradient-to-l from-transparent to-cyan-500/70"></div>
+                </div>
+                
+                <div class="text-slate-300 font-lore text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed text-center mb-10 sm:mb-14 z-10">
+                    <p class="italic opacity-90">Ein dimensionsübergreifendes, sich stetig wandelndes Gewölbe. Der Verrückte Magier prüft Geist, Seele und Standhaftigkeit jener, die eintreten.</p>
+                </div>
+                
+                <button onclick="enterArkanum()" class="group relative px-8 py-4 sm:px-12 sm:py-6 md:px-16 md:py-7 bg-black/80 border-2 border-cyan-500 text-white font-magic text-lg sm:text-2xl md:text-3xl tracking-[0.25em] overflow-hidden transition-all hover:shadow-[0_0_60px_rgba(0,229,255,0.6)] hover:border-cyan-300 z-10 uppercase cursor-pointer">
+                    <div class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 gpu-accel"></div>
+                    <span class="relative flex items-center gap-4 sm:gap-5 text-glow-mana">Das Labyrinth betreten <i data-lucide="sparkles" class="w-6 h-6 sm:w-8 sm:h-8 animate-pulse text-cyan-400"></i></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 2: HOME (PFORTE) ================= -->
+        <div id="home" class="page-container">
+            <div class="py-10 md:py-16 flex flex-col items-center px-4 relative">
+                <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-[500px] bg-cyan-500/10 blur-[150px] rounded-full pointer-events-none z-0 gpu-accel"></div>
+                
+                <div class="max-w-5xl w-full text-center space-y-6 z-10 mt-4">
+                    
+                    <div class="inline-flex items-center gap-3 border border-cyan-900/60 bg-black/50 px-4 sm:px-6 py-2 shadow-[0_0_20px_rgba(0,229,255,0.15)]">
+                        <i data-lucide="compass" class="w-4 h-4 text-cyan-400 animate-pulse"></i>
+                        <span class="text-xs sm:text-sm font-magic tracking-[0.2em] text-cyan-300 uppercase">Sphäre Anubia • Das Labyrinth erwacht</span>
+                        <i data-lucide="compass" class="w-4 h-4 text-cyan-400 animate-pulse"></i>
+                    </div>
+                    
+                    <h1 class="font-magic text-5xl sm:text-7xl md:text-8xl lg:text-9xl text-white text-glow-mana leading-tight mt-2 mb-2 tracking-[0.15em]">ARKANUM</h1>
+                    
+                    <div class="flex items-center justify-center gap-2 sm:gap-4 opacity-80 mb-8 w-full">
+                        <div class="h-[1px] flex-grow max-w-[30px] md:max-w-[80px] bg-gradient-to-r from-transparent to-cyan-500/50"></div>
+                        <h2 class="font-magic text-base sm:text-xl md:text-2xl text-slate-300 tracking-[0.25em] text-glow-frost text-center uppercase whitespace-nowrap">Conan Exiles Voice RP • Labyrinth des verrückten Magiers</h2>
+                        <div class="h-[1px] flex-grow max-w-[30px] md:max-w-[80px] bg-gradient-to-l from-transparent to-cyan-500/50"></div>
+                    </div>
+                    
+                    <div class="bg-black/50 border border-cyan-950 px-6 sm:px-10 py-3 rounded-sm shadow-[0_0_25px_rgba(0,0,0,0.6)] mb-8 inline-flex items-center justify-center gap-3 mx-auto">
+                        <span id="welcome-title" class="font-magic text-xl sm:text-2xl md:text-3xl text-cyan-400 tracking-widest uppercase text-center">Willkommen in den Hallen von ARKANUM</span>
+                    </div>
+                    
+                    <p class="text-slate-200 font-lore text-lg sm:text-xl md:text-2xl max-w-3xl mx-auto leading-relaxed border-l-2 border-cyan-500 pl-6 sm:pl-8 text-left bg-gradient-to-r from-black/60 to-transparent p-5 sm:p-7 rounded-r italic">
+                        Du stehst vor den Toren der Sphäre Anubia. Das Labyrinth des Verrückten Magiers fordert deinen Geist und deine Standhaftigkeit. Hier überlebt nicht die bloße rohe Gewalt, sondern jene, deren Wille unerschütterlich ist und deren Stimme im Einklang mit alten Mächten schwingt.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-5 justify-center pt-8">
+                        <button onclick="switchPage('char')" class="group relative px-8 py-3.5 bg-white text-black font-magic text-sm tracking-widest uppercase hover:bg-cyan-300 transition-all shadow-[0_0_20px_rgba(255,255,255,0.3)] flex items-center justify-center gap-3 cursor-pointer">
+                            <i data-lucide="feather" class="w-4 h-4 text-black"></i>
+                            <span>Seelen-Inschrift verfassen</span>
+                        </button>
+                        <button onclick="switchPage('lore')" class="px-8 py-3.5 bg-black/60 border border-white/20 text-white font-magic text-sm tracking-widest hover:border-cyan-400 hover:text-cyan-300 transition-all uppercase flex items-center justify-center gap-3 cursor-pointer">
+                            <i data-lucide="scroll" class="w-4 h-4 text-white/60"></i>
+                            <span>Die Chronik studieren</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3 Pillars of Experience -->
+            <div class="max-w-7xl mx-auto px-4 py-12 sm:py-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="rift-panel p-8 transform hover:-translate-y-1.5 transition-all duration-300 rounded-sm">
+                    <i data-lucide="mic" class="w-10 h-10 text-cyan-400 mb-5 opacity-80"></i>
+                    <h3 class="font-magic text-2xl text-white mb-3">Stimme der Sphäre</h3>
+                    <p class="text-lg text-slate-300 font-lore leading-relaxed">Das gesprochene Wort besitzt im Labyrinth unerschütterliche Gültigkeit. Dein Voice-RP formt Bündnisse, Verträge und das Schicksal in Anubia.</p>
+                </div>
+                <div class="rift-panel p-8 transform hover:-translate-y-1.5 transition-all duration-300 rounded-sm">
+                    <i data-lucide="shield-alert" class="w-10 h-10 text-cyan-400 mb-5 opacity-80"></i>
+                    <h3 class="font-magic text-2xl text-white mb-3">Das Lebendige Gewölbe</h3>
+                    <p class="text-lg text-slate-300 font-lore leading-relaxed">Ein unbarmherziger Schauplatz, der sich stetig wandelt. Prüfungen des Geistes, moralische Dilemmata und antike Geheimnisse fordern jeden Wanderer heraus.</p>
+                </div>
+                <div class="rift-panel p-8 transform hover:-translate-y-1.5 transition-all duration-300 rounded-sm">
+                    <i data-lucide="flame" class="w-10 h-10 text-cyan-400 mb-5 opacity-80"></i>
+                    <h3 class="font-magic text-2xl text-white mb-3">Organisches Scheitern</h3>
+                    <p class="text-lg text-slate-300 font-lore leading-relaxed">Kein Skript-RP, keine geschenkten Triumphe. Niederlagen hinterlassen reale Narben im Knocksystem und formen deinen Charakter dauerhaft.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 3: CLASSES (VÖLKER & PFADE) ================= -->
+        <div id="classes" class="page-container">
+            <div class="max-w-6xl mx-auto px-4 py-10 space-y-14">
+                <div class="text-center mb-10">
+                    <h2 class="font-magic text-5xl text-white text-glow-mana mb-3">Völker & Pfade</h2>
+                    <p class="font-magic text-cyan-400 tracking-[0.25em] uppercase text-xs">Der offizielle Völkerkatalog & das 2-Säulen-Berufssystem der Sphäre Anubia</p>
+                </div>
+
+                <!-- 1. GESAMTKATALOG ALLER 18 VÖLKER (KAPITEL 5) -->
+                <div class="rift-panel p-6 sm:p-8 md:p-10 rounded-sm">
+                    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-white/10 pb-5">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full border border-cyan-400/40 flex items-center justify-center bg-cyan-950/20 text-cyan-300">
+                                <i data-lucide="users" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-magic text-2xl sm:text-3xl text-white">Der Gesamtkatalog aller 18 Völker</h3>
+                                <p class="text-xs sm:text-sm font-magic tracking-widest text-cyan-400">Verbindliche Körpergrößen & Magieaffinitäten • Auf einen Blick</p>
+                            </div>
+                        </div>
+
+                        <!-- Filter Tabs -->
+                        <div class="flex flex-wrap gap-1.5 self-start md:self-auto text-xs font-magic">
+                            <button onclick="filterRaceCatalog('all')" class="race-filter-btn px-3 py-1.5 rounded-sm bg-white text-black font-semibold uppercase tracking-wider transition-colors cursor-pointer" data-filter="all">Alle (18)</button>
+                            <button onclick="filterRaceCatalog('humanoid')" class="race-filter-btn px-3 py-1.5 rounded-sm bg-black/60 border border-white/15 text-slate-300 hover:text-white uppercase tracking-wider transition-colors cursor-pointer" data-filter="humanoid">Humanoide</button>
+                            <button onclick="filterRaceCatalog('beast')" class="race-filter-btn px-3 py-1.5 rounded-sm bg-black/60 border border-white/15 text-slate-300 hover:text-white uppercase tracking-wider transition-colors cursor-pointer" data-filter="beast">Bestien & Wandler</button>
+                            <button onclick="filterRaceCatalog('dark')" class="race-filter-btn px-3 py-1.5 rounded-sm bg-black/60 border border-white/15 text-slate-300 hover:text-white uppercase tracking-wider transition-colors cursor-pointer" data-filter="dark">Dämonen & Finsternis</button>
+                            <button onclick="filterRaceCatalog('ancient')" class="race-filter-btn px-3 py-1.5 rounded-sm bg-black/60 border border-white/15 text-slate-300 hover:text-white uppercase tracking-wider transition-colors cursor-pointer" data-filter="ancient">Alte Völker & Feen</button>
+                        </div>
+                    </div>
+
+                    <p class="text-slate-300 font-lore text-lg sm:text-xl mb-8 leading-relaxed">
+                        Wähle ein Volk aus, um seinen individuellen arkanen Resonanzeffekt auszulösen und den vollständigen Kodex mit allen Richtmaßen, Magieformen und Verhaltensgesetzen zu öffnen:
+                    </p>
+
+                    <!-- 18 Rassen Grid: Auf einen Blick in 6 Spalten -->
+                    <div id="race-catalog-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
+                        <!-- Wird über JavaScript renderRaceCatalog() initialisiert -->
+                    </div>
+                </div>
+
+                <!-- 2. DAS 2-SÄULEN-BERUFSSYSTEM (KAPITEL 6) -->
+                <div class="rift-panel p-8 md:p-10 rounded-sm">
+                    <div class="flex items-center gap-3 mb-6 border-b border-cyan-950 pb-4">
+                        <i data-lucide="anvil" class="w-8 h-8 text-cyan-400"></i>
+                        <div>
+                            <h3 class="font-magic text-3xl text-white">Das 2-Säulen-Berufssystem & Handwerks-Kodex</h3>
+                            <p class="text-sm font-magic tracking-widest text-cyan-400">Säule 1 (Monopole) & Säule 2 (Freie RP-Berufe)</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
+                        <!-- Säule 1 -->
+                        <div class="bg-black/60 border border-cyan-900/60 p-6 rounded-sm space-y-4">
+                            <div class="flex items-center gap-2 border-b border-cyan-950 pb-3">
+                                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+                                <h4 class="font-magic text-xl text-white">Säule 1: Die 11 Monopolberufe</h4>
+                            </div>
+                            <p class="text-sm text-slate-300 font-lore">Genau <strong>1 Beruf pro Charakter</strong>. Exklusive Rezepte & Engine-Monopole:</p>
+                            <ol class="list-decimal pl-5 space-y-1.5 text-sm font-magic text-cyan-200">
+                                <li>Alchemist <span class="text-slate-400 font-lore">(Essenzen, Gifte, Tränke)</span></li>
+                                <li>Bogner / Schreiner <span class="text-slate-400 font-lore">(Bögen, Pfeile, Holzbau)</span></li>
+                                <li>Botaniker <span class="text-slate-400 font-lore">(Kräuterzucht, seltene Flora)</span></li>
+                                <li>Feinschmied <span class="text-slate-400 font-lore">(Juwelier, Fokus-Ringe, Artefakte)</span></li>
+                                <li>Gastronom <span class="text-slate-400 font-lore">(Festmähler, Stärkungsnahrung)</span></li>
+                                <li>Jäger / Fischer <span class="text-slate-400 font-lore">(Tierhäute, Fleisch, Fallen)</span></li>
+                                <li>Rüstschmied <span class="text-slate-400 font-lore">(Platten-, Leder- & Tuchrüstungen)</span></li>
+                                <li>Schneider <span class="text-slate-400 font-lore">(Gewänder, Stoffe, Verzierungen)</span></li>
+                                <li>Sklavenhändler <span class="text-slate-400 font-lore">(Arbeitskräfte, Wächter, Tänzer)</span></li>
+                                <li>Tierzüchter <span class="text-slate-400 font-lore">(Zucht von Begleit- & Reittieren)</span></li>
+                                <li>Waffenschmied <span class="text-slate-400 font-lore">(Klingen, Hämmer, Waffen aller Art)</span></li>
+                            </ol>
+                        </div>
+
+                        <!-- Säule 2 -->
+                        <div class="bg-black/60 border border-slate-800 p-6 rounded-sm space-y-4">
+                            <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+                                <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                                <h4 class="font-magic text-xl text-slate-200">Säule 2: Der freie RP-Beruf</h4>
+                            </div>
+                            <p class="text-sm text-slate-300 font-lore">Freie Wahl zur Vertiefung deiner Identität (ohne Engine-Rezeptzwang):</p>
+                            <div class="flex flex-wrap gap-2 text-xs font-magic text-slate-300">
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Barde</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Bauer</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Baumeister</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Dekorateur</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Dieb</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Diener</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Dirne</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Gelehrter / Schreiber</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-cyan-700 text-cyan-300 font-bold">Heiler (Sonderrolle)</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Imker</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Kartograph</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Parfümeur</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Priester</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Reliktjäger / Sammler</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Steinmetz</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Söldner</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Tätowierer & Piercer</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Tänzer</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Verzauberer</span>
+                                <span class="px-2.5 py-1 bg-black/80 border border-slate-700">Wache</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sonderregeln Handwerk -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm font-lore">
+                        <div class="bg-black/40 border-l-2 border-cyan-400 p-4">
+                            <h5 class="font-magic text-cyan-300 text-base mb-1">Berufswechsel</h5>
+                            <p class="text-slate-300">Ein Wechsel ist nur <strong>einmalig</strong> gestattet und erfordert mindestens <strong>4 Wochen aktives Lern-RP</strong> mit Nachweisen.</p>
+                        </div>
+                        <div class="bg-black/40 border-l-2 border-red-500 p-4">
+                            <h5 class="font-magic text-red-300 text-base mb-1">Heiler-Sonderstatus</h5>
+                            <p class="text-slate-300">Da Heiler für das Knockout-System unverzichtbar sind, darf die Heilkunst <strong>IMMER zusätzlich</strong> zu jedem Beruf ausgeübt werden!</p>
+                        </div>
+                        <div class="bg-black/40 border-l-2 border-cyan-400 p-4">
+                            <h5 class="font-magic text-cyan-300 text-base mb-1">Forschungs-Kodex</h5>
+                            <p class="text-slate-300">Neue Rezepturen müssen im Ingame-RP mit Mitspielern erforscht werden. Reine KI-generierte Texte zur Einreichung sind untersagt.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. GESTALTWANDLER & LYKANER KODEX -->
+                <div class="rift-panel p-8 md:p-10 rounded-sm">
+                    <div class="flex items-center gap-3 mb-6 border-b border-cyan-950 pb-4">
+                        <i data-lucide="paw-print" class="w-8 h-8 text-cyan-400"></i>
+                        <div>
+                            <h3 class="font-magic text-3xl text-white">Der Kodex der Wandler & Lykaner</h3>
+                            <p class="text-sm font-magic tracking-widest text-cyan-400">Strikte Rollenspiel-Einschränkungen bei Verwandlung</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-lore text-lg">
+                        <div class="bg-black/60 border border-cyan-900/60 p-6 rounded-sm">
+                            <h4 class="font-magic text-white text-xl mb-3 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5 text-cyan-400"></i> Gestaltwandler</h4>
+                            <ul class="list-disc pl-5 space-y-2 text-slate-300 text-base">
+                                <li>In gewandelter Tiergestalt ist <strong>keinerlei Sprechen möglich</strong> (strikte Tierinstinkte).</li>
+                                <li>Die Verwandlung gilt selbst als mächtiger magischer Akt. Daher ist <strong>maximal 1 weitere Magieform</strong> wählbar.</li>
+                                <li>Rüstungen und Waffen verschwinden während der Wandlung im Körper.</li>
+                            </ul>
+                        </div>
+                        <div class="bg-black/60 border border-cyan-900/60 p-6 rounded-sm">
+                            <h4 class="font-magic text-white text-xl mb-3 flex items-center gap-2"><i data-lucide="moon" class="w-5 h-5 text-cyan-400"></i> Lykaner (Werwölfe)</h4>
+                            <ul class="list-disc pl-5 space-y-2 text-slate-300 text-base">
+                                <li>Absolut <strong>stummes Rollenspiel</strong> im Tierleib! Kein Voice-Chat, keine Laute mit Sprachbedeutung.</li>
+                                <li>Im Tierleib dürfen <strong>keine Türen, Truhen oder Tore geöffnet</strong> oder bedient werden.</li>
+                                <li>Begrenzt auf maximal <strong>1 zusätzliche Magieart</strong> (Arkan, Schatten oder Blut).</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= PAGE 4: LORE (CHRONIK) ================= -->
+        <div id="lore" class="page-container">
+            <div class="max-w-5xl mx-auto px-4 py-10 space-y-12">
+                <div class="text-center mb-12 relative">
+                    <i data-lucide="compass" class="w-16 h-16 text-cyan-400 mx-auto mb-4 animate-spin-slow opacity-40"></i>
+                    <h2 class="font-magic text-5xl md:text-6xl text-white text-glow-mana mb-3 relative z-10">Die Chronik der Sphäre Anubia</h2>
+                    <p class="font-magic text-cyan-400 tracking-[0.25em] relative z-10 uppercase text-xs">Das Labyrinth des verrückten Magiers • Ordnung & Weltengefüge</p>
+                </div>
+
+                <!-- Lore Timeline -->
+                <div class="space-y-10 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-px before:bg-gradient-to-b before:from-transparent before:via-cyan-500/30 before:to-transparent">
+                    
+                    <!-- 1. Hauptwelt Anubia -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-cyan-400 bg-black text-cyan-400 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_15px_rgba(0,229,255,0.4)] z-10">
+                            <i data-lucide="globe" class="w-5 h-5"></i>
+                        </div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] rift-panel p-6 md:p-8 rounded-sm">
+                            <h3 class="font-magic text-2xl text-white mb-2">1. Die Hauptwelt Anubia</h3>
+                            <p class="text-slate-300 font-lore text-lg leading-relaxed">
+                                Anubia ist eine uralte, von arkanen Strömen durchzogene Welt mit tief verwurzelten Reichen, uralten Wäldern und geheiligten Ruinen. Das Reisen zwischen den Sphären galt jahrtausendelang als Frevel oder unmöglicher Mythos – bis der Riss des Verrückten Magiers das Gefüge zerschnitt.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 2. Der Verrückte Magier -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-cyan-400 bg-black text-cyan-400 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_15px_rgba(0,229,255,0.4)] z-10">
+                            <i data-lucide="sparkles" class="w-5 h-5"></i>
+                        </div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] rift-panel p-6 md:p-8 rounded-sm">
+                            <h3 class="font-magic text-2xl text-cyan-300 mb-2">2. Der Verrückte Magier</h3>
+                            <p class="text-slate-300 font-lore text-lg leading-relaxed">
+                                Ein Erzmagier unermesslicher Macht, dessen Gelehrsamkeit in Wahn umschlug oder von den Göttern verflucht wurde. Er schuf das Gewölbe nicht zur bloßen Zerstörung, sondern als monumentales Prüffeld für Standhaftigkeit, Verstand und sittliche Reinheit aller denkenden Kreaturen.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 3. Das lebendige Labyrinth -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-cyan-400 bg-black text-cyan-400 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_15px_rgba(0,229,255,0.4)] z-10">
+                            <i data-lucide="box" class="w-5 h-5"></i>
+                        </div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] rift-panel p-6 md:p-8 rounded-sm">
+                            <h3 class="font-magic text-2xl text-white mb-2">3. Das lebendige Labyrinth</h3>
+                            <p class="text-slate-300 font-lore text-lg leading-relaxed">
+                                Die Hallen schlafen nie. Wände verschieben sich, Steine atmen, und Türen öffnen sich in fremde Zeiträume. Das Gewölbe prüft Abenteurer mit arkanen Rätseln, moralischen Dilemmata und furchterregenden Konstrukten.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- 4. Ansässige Völker vs. Fremde Seelen -->
+                    <div class="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group">
+                        <div class="flex items-center justify-center w-10 h-10 rounded-full border border-cyan-400 bg-black text-cyan-400 shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 shadow-[0_0_15px_rgba(0,229,255,0.4)] z-10">
+                            <i data-lucide="footprints" class="w-5 h-5"></i>
+                        </div>
+                        <div class="w-[calc(100%-4rem)] md:w-[calc(50%-3rem)] rift-panel p-6 md:p-8 rounded-sm">
+                            <h3 class="font-magic text-2xl text-cyan-300 mb-2">4. Ansässige Völker vs. Fremde Seelen</h3>
+                            <p class="text-slate-300 font-lore text-lg leading-relaxed">
+                                In ARKANUM begegnen sich Charaktere zweier Ursprünge: Eingesessene Blutlinien direkt aus der Sphäre Anubia (mit Rechten, Wissen und Allianzen) sowie Fremde Seelen, die durch die Dimensionsrisse ins Labyrinth gesaugt wurden und sich ihren Platz erst erkämpfen müssen.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Sprach- und Immersionsregeln (Kapitel 4.2) -->
+                <div class="rift-panel p-8 md:p-10 rounded-sm border-cyan-900/60 mt-12 bg-black/60">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i data-lucide="shield-alert" class="w-6 h-6 text-amber-400"></i>
+                        <h3 class="font-magic text-2xl text-amber-300 m-0">Sprach- & Immersions-Reglement</h3>
+                    </div>
+                    <ul class="list-disc pl-6 space-y-2 text-slate-300 font-lore text-lg leading-relaxed">
+                        <li><strong>Strikter RP-Sprachfilter:</strong> Moderne Slangbegriffe (<em>„Cool, Digga, Outfit, Sorry, LoL, Rofl, Vallah“</em>) sind im Voice- und Schreib-RP strengstens untersagt!</li>
+                        <li><strong>Verbot des Wortes „Dungeon“:</strong> Im Ingame-Rollenspiel ist der Begriff verboten! Nutze stattdessen konsequent <strong>„Labyrinth“</strong>, <strong>„Gewölbe“</strong>, <strong>„Katakomben“</strong> oder <strong>„Prüfungshallen“</strong>.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ================= PAGE 5: GALLERY (GEWÖLBE) ================= -->
+        <div id="gallery" class="page-container">
+            <div class="max-w-6xl mx-auto px-4 py-10 space-y-8">
+                <div class="text-center mb-8">
+                    <h2 class="font-magic text-5xl text-white text-glow-mana mb-3">Das Gewölbe</h2>
+                    <p class="font-magic text-cyan-400 tracking-[0.25em] uppercase text-xs">Impressionen aus den sich wandelnden Hallen des Labyrinths</p>
+                </div>
+
+                <div id="gallery-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 6: RULES (GESETZE) ================= -->
+        <div id="rules" class="page-container">
+            <div class="max-w-4xl mx-auto px-4 py-10">
+                <div class="text-center mb-12">
+                    <h2 class="font-magic text-5xl text-white text-glow-mana mb-3">Eherne Gesetze</h2>
+                    <p class="font-magic text-cyan-400 tracking-[0.25em] uppercase text-xs">Der verbindliche Server-Kodex von ARKANUM (FSK 18)</p>
+                </div>
+
+                <div class="grid gap-5 font-lore text-lg">
+                    
+                    <!-- 1. Grundlegende RP- & Verhaltensregeln -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="scale" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#1 - Grundlegende RP- & Verhaltensregeln</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <ul class="list-disc pl-6 space-y-2">
+                                    <li><strong>FSK 18:</strong> Das Mindestalter beträgt sowohl OOC für Spieler als auch IC für alle Charaktere strikt 18 Jahre. Kindliche Charaktere sowie jugendgefährdende Inhalte führen zum sofortigen permanenten Ausschluss und zur Anzeige.</li>
+                                    <li><strong>IC/OOC-Trennung:</strong> Rollenspiel und privates Verhalten sind ausnahmslos getrennt zu behandeln. Kein Metagaming, Power-RP oder Fail-RP.</li>
+                                    <li><strong>E-RP-Verbot in der Hauptstadt:</strong> Erotisches Roleplay sowie anstößige Handlungen sind in der Serverhauptstadt strengstens verboten! Außerhalb nur nach beidseitiger Zustimmung in privaten Räumen.</li>
+                                    <li><strong>Maskierungs-Regel:</strong> Maskierte Spieler tragen den Status <code>Maskiert</code>. Sie dürfen nicht anhand ihrer Stimme identifiziert werden. Erkennung ist nur über markante physische Beweise möglich (Tattoos, Narben, spezifische Kleidung).</li>
+                                    <li><strong>Streaming & Mitschnitte:</strong> Mit dem Betreten akzeptiert jeder Spieler unwiderruflich, in Streams (Twitch) und Videos (YouTube) aufgenommen zu werden.</li>
+                                    <li><strong>Schutz von Abwesenden:</strong> AFK- und ausgeloggte Charaktere dürfen weder bestohlen, missbraucht noch attackiert werden.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 2. Magie- & Charakter-Regeln -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="sparkles" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#2 - Magie- & Charakter-Regeln</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <ul class="list-disc pl-6 space-y-2">
+                                    <li><strong>Magielimit:</strong> Maximal <strong>zwei Magiearten</strong> pro Charakter.</li>
+                                    <li><strong>Gegensätzliche Elemente verboten:</strong> Kombinationen aus <strong>Wasser & Feuer</strong> sowie <strong>Licht & Schatten</strong> schließen sich logisch aus und sind unzulässig!</li>
+                                    <li><strong>Dunkelelfen:</strong> Dürfen unter keinen Umständen Lichtmagie wirken oder beherrschen.</li>
+                                    <li><strong>Konsequenzen & Erschöpfung:</strong> Starkes Magiewirken führt zwingend zu Schwindel, Schwächeanfällen, Kopfschmerzen oder Mangelerscheinungen, die aktiv ausgespielt werden müssen.</li>
+                                    <li><strong>Keine Gott-Konzepte:</strong> Unbesiegbare Wesen sind verboten. Jeder Charakter muss durch gewöhnliche Waffen verwundbar und tötbar sein.</li>
+                                    <li><strong>Wandler- & Lykaner-Limit:</strong> Da Verwandlungen selbst Magie sind, dürfen Wandler, Lykaner und Fledermaus-Vampire maximal <strong>eine einzige weitere Magieart</strong> wählen.</li>
+                                    <li><strong>Schwangerschaften:</strong> Dürfen nur nach vorheriger Absprache und schriftlicher Freigabe durch das Team ausgespielt werden.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 3. Flugregeln & Wartezeit -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="feather" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#3 - Flugregeln & Wartezeit</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <ul class="list-disc pl-6 space-y-2">
+                                    <li><strong>Physikalische Plausibilität:</strong> Fliegen ist ausschließlich Wesen mit anatomischen Flügeln vorbehalten (Drachengeborene, Dämonen, geflügelte Wandler).</li>
+                                    <li><strong>4 Wochen Wartezeit:</strong> Nach Genehmigung eines Flugkonzepts gilt eine verbindliche Wartezeit von <strong>mindestens 4 Wochen</strong>, bevor das Fliegen Ingame genutzt werden darf.</li>
+                                    <li><strong>Kampf- & Fluchtverbot:</strong> Flügel dürfen im Kampf weder zur Flucht noch zum Wirken von Zaubern aus der Luft missbraucht werden.</li>
+                                    <li><strong>Überflugverbot:</strong> Das Überfliegen fremder Siedlungen, Plots und Hauptstädte ist verboten. Zuwiderhandelnde dürfen ohne Vorwarnung vom Himmel geschossen werden.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 4. Bau- & Clanregeln -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="hammer" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#4 - Bau- & Clanregeln</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <p><strong>Clan-Zwang:</strong> Vor dem Platzieren des ersten Bauteils muss zwingend ein Clan gegründet werden.</p>
+                                <div class="bg-black/60 p-4 border border-cyan-900/60 rounded-sm">
+                                    <h4 class="font-magic text-white text-base mb-2">Offizielle Bauteil-Staffelung (Bau + Deko):</h4>
+                                    <ul class="list-disc pl-5 space-y-1 text-sm text-cyan-200 font-magic">
+                                        <li>1 Spieler (Solo): <strong>800 Bauteile</strong></li>
+                                        <li>2 Spieler: <strong>1.200 Bauteile</strong></li>
+                                        <li>3 Spieler: <strong>1.600 Bauteile</strong></li>
+                                        <li>4 Spieler: <strong>2.000 Bauteile</strong></li>
+                                        <li>5+ Spieler (Clan-Maximum): <strong>2.400 Bauteile</strong></li>
+                                    </ul>
+                                </div>
+                                <ul class="list-disc pl-6 space-y-1 text-sm text-slate-300">
+                                    <li>Statisch unplausible oder schwebende Bauten sind streng verboten.</li>
+                                    <li>Werkbänke: Maximal 1 Werkbank derselben Art pro Clan (berufsbezogen maximal eine 2.).</li>
+                                    <li>Das Verbauen von Boss-, Material-, NPC- oder Tier-Spawns führt zum sofortigen Abriss.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 5. Das 4-Phasen-Knockout- & Heilersystem -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group" open>
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="heart-pulse" class="text-red-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-red-400 m-0">#5 - Das 4-Phasen-Knockout- & Heilersystem</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-5">
+                                <p>Jedes Niederstrecken muss als Bewusstlosigkeit ausgespielt werden. Es gibt keine Wunderheilung – Verletzte müssen verweilen:</p>
+                                
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left border-collapse text-sm">
+                                        <thead>
+                                            <tr class="border-b border-cyan-900 bg-cyan-950/40 text-cyan-300 font-magic">
+                                                <th class="p-3">Phase</th>
+                                                <th class="p-3">Verletzungsschwere</th>
+                                                <th class="p-3">Heiler-Malus</th>
+                                                <th class="p-3">Auskurierdauer (RP)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-cyan-950/60 font-lore text-base">
+                                            <tr>
+                                                <td class="p-3 font-magic text-white">1. Fall</td>
+                                                <td class="p-3">Leichte Verletzung (Beulen, Schrammen)</td>
+                                                <td class="p-3">12 Std. Cooldown</td>
+                                                <td class="p-3">1 – 2 Tage (Notdürftig versorgt)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-magic text-white">2. Fall</td>
+                                                <td class="p-3">Mittelschwere Wunde (Tiefe Schnitte)</td>
+                                                <td class="p-3">24 Std. Cooldown</td>
+                                                <td class="p-3">2 – 3 Tage (Bedingt kampffähig)</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 font-magic text-white">3. Fall</td>
+                                                <td class="p-3">Schwere Wunde (Knochenbrüche)</td>
+                                                <td class="p-3">48 Std. Cooldown</td>
+                                                <td class="p-3">3 – 4 Tage (Absolut kampfunfähig!)</td>
+                                            </tr>
+                                            <tr class="bg-red-950/30 text-red-200">
+                                                <td class="p-3 font-magic text-red-400 font-bold">4. Fall</td>
+                                                <td class="p-3 font-bold">Tod des Charakters (Permadeath)</td>
+                                                <td class="p-3">Endgültig</td>
+                                                <td class="p-3">Nur über Support / Gnade der Götter</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-xs text-slate-400 italic">Heiler haben Obhutspflicht: Verletzte dürfen das Krankenlager während der Behandlung nicht verlassen.</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 6. Konflikt-RP & Charaktertod-Reglement -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="swords" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#6 - Konflikt-RP & Charaktertod-Reglement</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <ul class="list-disc pl-6 space-y-2">
+                                    <li><strong>Warnpflicht:</strong> Ein physischer Angriff darf erst nach <strong>mindestens zwei expliziten verbalen Warnungen</strong> im RP erfolgen.</li>
+                                    <li><strong>Permadeath liegt in Spielerhand:</strong> Ein verlorener Kampf führt <strong>niemals automatisch</strong> zum endgültigen Tod!</li>
+                                    <li>Ein Kampf auf Leben und Tod muss <strong>im Vorfeld von beiden Parteien einvernehmlich beschlossen</strong> und mit der Projektleitung abgesprochen sein.</li>
+                                    <li><strong>Balance:</strong> Waffen oder Zaubereffekte, die zum sofortigen Tod ohne Gegenwehr führen (One-Hits), sind ausnahmslos verboten.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 7. Diebes- & Spionage-RP -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="eye" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#7 - Diebes- & Spionage-RP</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <p><strong>Diebes-Kodex:</strong></p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm">
+                                    <li>Nur für Charaktere mit <strong>Dieb als Nebenberuf</strong> erlaubt.</li>
+                                    <li>Maximal <strong>50 Einheiten</strong> hergestellter Ressourcen dürfen entwendet werden.</li>
+                                    <li>Bei jedem Diebstahl <strong>MUSS ein POI (Hinweis/Spur)</strong> hinterlassen werden, gekoppelt an einen Skill-Check (z.B. Wahrnehmung).</li>
+                                </ul>
+                                <p><strong>Spionage-Kodex & Würfelmechanik:</strong></p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm">
+                                    <li>Belauscht ein Spion heimlich ein Gespräch und die Gegenseite würfelt <code>Wahrnehmung</code>, würfelt der Spion auf <code>Schleichen</code>. Der höhere Wurf entscheidet.</li>
+                                    <li>Kein Voyeurismus oder OOC-Nachstellen. Screenshots und Spuren sind als Nachweise Pflicht.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- 8. Begleiter- & NPC-Wachen-System -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="shield" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl md:text-2xl text-cyan-300 m-0">#8 - Begleiter- & NPC-Wachen-System</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4">
+                                <div class="bg-black/60 p-4 border border-cyan-900/60 rounded-sm">
+                                    <h4 class="font-magic text-white text-base mb-1">Maximal 3 Begleiter pro Spieler (1:1:1 Regel):</h4>
+                                    <p class="text-sm text-cyan-200">Exakt <strong>1 Begleittier</strong> + <strong>1 Reittier</strong> + <strong>1 Thrall</strong> (Nicht austauschbar! Müssen stets auf Passiv gestellt sein).</p>
+                                </div>
+                                <div class="p-4 bg-red-950/30 border border-red-900/60 rounded-sm">
+                                    <strong class="text-red-400">ABSOLUTES LABYRINTH-VERBOT:</strong> Begleiter jeglicher Art sind in Labyrinthen und Prüfungshallen ausnahmslos verboten! Werden sie dort angetroffen, werden sie vom Team <strong>auf der Stelle getötet</strong>!
+                                </div>
+                                <p><strong>NPC-Wachen Kontingent nach Clan-Größe:</strong></p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm text-slate-300">
+                                    <li>ab 1 Spieler im Clan: <strong>1 Wache</strong></li>
+                                    <li>ab 3 Spielern im Clan: <strong>2 Wachen</strong></li>
+                                    <li>ab 5 Spielern im Clan: <strong>3 Wachen</strong></li>
+                                    <li>ab 7 Spielern im Clan: <strong>4 Wachen (Clan-Maximum)</strong></li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 7: FAQ (ALTES WISSEN) ================= -->
+        <div id="faq" class="page-container">
+            <div class="max-w-4xl mx-auto px-4 py-10">
+                <div class="text-center mb-12">
+                    <h2 class="font-magic text-5xl text-white text-glow-mana mb-3">Altes Wissen</h2>
+                    <p class="font-magic text-cyan-400 tracking-[0.25em] uppercase text-xs">Die 5 Säulen der ARKANUM-Philosophie & Praktische Anleitungen</p>
+                </div>
+
+                <!-- Mod-List & Restart Times -->
+                <div class="flex flex-col md:flex-row justify-center items-center gap-6 mb-12">
+                    <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3615903129" target="_blank" rel="noopener noreferrer" class="group relative px-6 py-3.5 bg-black/60 border border-cyan-800 text-white font-magic tracking-widest uppercase transition-all hover:border-cyan-400 hover:shadow-[0_0_20px_rgba(0,229,255,0.3)] flex items-center gap-3">
+                        <i data-lucide="book-dashed" class="w-5 h-5 text-cyan-400"></i>
+                        <span class="text-sm">Bibliothek der Modifikationen (Steam)</span>
+                        <i data-lucide="external-link" class="w-4 h-4 text-slate-400 group-hover:text-white transition-colors"></i>
+                    </a>
+                    <div class="bg-black/60 border border-cyan-950 px-6 py-3.5 flex flex-col justify-center items-center text-center">
+                        <span class="text-cyan-400 font-magic tracking-widest uppercase text-xs mb-0.5">Restartzeiten</span>
+                        <span class="text-slate-200 font-lore text-lg">Täglich um 02:00, 10:00 und 18:00 Uhr</span>
+                    </div>
+                </div>
+
+                <!-- Die 5 Säulen von ARKANUM (Kapitel 9) -->
+                <div class="rift-panel p-8 rounded-sm mb-10 border-cyan-900/60">
+                    <h3 class="font-magic text-2xl text-white mb-6 flex items-center gap-3 border-b border-cyan-950 pb-3">
+                        <i data-lucide="pillar" class="text-cyan-400"></i> Die 5 Säulen der ARKANUM-Philosophie
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-lore text-lg">
+                        <div class="bg-black/50 p-4 border-l-2 border-cyan-400">
+                            <h4 class="font-magic text-cyan-300 text-base mb-1">1. Hybrides RP-System</h4>
+                            <p class="text-slate-300 text-sm">Harmonische Verschmelzung von lebendigem Voice-RP mit der Tiefgründigkeit von Schrift-RP und Pen-&-Paper-Mechaniken bei verdeckten Proben.</p>
+                        </div>
+                        <div class="bg-black/50 p-4 border-l-2 border-cyan-400">
+                            <h4 class="font-magic text-cyan-300 text-base mb-1">2. Season-Persistenz</h4>
+                            <p class="text-slate-300 text-sm">Kein Zwang zum Wipe! Deine Charaktere, Titel, Bande und Reputation bleiben über Season-Grenzen hinweg erhalten.</p>
+                        </div>
+                        <div class="bg-black/50 p-4 border-l-2 border-cyan-400">
+                            <h4 class="font-magic text-cyan-300 text-base mb-1">3. Absolute Spieler-Autonomie</h4>
+                            <p class="text-slate-300 text-sm">Volle Souveränität über das Schicksal: Der Charaktertod (Permadeath) liegt zu 100% in der Entscheidung des Spielers.</p>
+                        </div>
+                        <div class="bg-black/50 p-4 border-l-2 border-cyan-400">
+                            <h4 class="font-magic text-cyan-300 text-base mb-1">4. Organisches Scheitern</h4>
+                            <p class="text-slate-300 text-sm">Keine garantierten Erfolge! Niederlagen prägen das Labyrinth, bringen neue Konflikte hervor und haben echte Konsequenzen.</p>
+                        </div>
+                        <div class="bg-black/50 p-4 border-l-2 border-cyan-400 md:col-span-2">
+                            <h4 class="font-magic text-cyan-300 text-base mb-1">5. Duale Handlungsstränge</h4>
+                            <p class="text-slate-300 text-sm">Perfekte Balance zwischen dem epischen Serverplot des Verrückten Magiers und den freien Intrigen der Spielerschaft.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Practical Guides (Accordions) -->
+                <div class="grid gap-5 font-lore text-lg">
+                    
+                    <!-- ToT! Chat & Footprint -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="settings" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl text-cyan-300 m-0">Engine, ToT! Chat & Fußabdrücke</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-4 text-base">
+                                <p><strong>ToT! Footprint einstellen (Shift+B):</strong></p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm">
+                                    <li>Drücke <code>Shift + B</code>, wähle <em>Bodies</em> & klicke auf das Stift-Symbol bei <em>Current Body</em>.</li>
+                                    <li>Öffne <em>Body</em> &rarr; <em>Footprint</em> und wähle die passende Sohle: <em>Bare</em> (barfuß), <em>Generic Shoes</em> (flach), <em>High Heels</em> oder <em>Paws/Hoofs</em> für Tiermodelle/Satyrn.</li>
+                                    <li>Klicke oben links auf den Haken für <em>Apply</em>.</li>
+                                </ul>
+                                <p><strong>ToT! Chat Fenster-Fix:</strong></p>
+                                <p class="text-sm">In den Conan-Einstellungen unter <em>Steuerung &rarr; Kommunikation</em> die Belegung für <em>Globalchat</em> auf eine ungenutzte Taste legen und für <em>Chat Fenster Ein/Ausblenden</em> die Taste <code>[Enter]</code> hinterlegen.</p>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Scripted Lights -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="sun" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl text-cyan-300 m-0">Scripted Lights (Nachtlichter)</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-3 text-base">
+                                <p>Automatisches Ein- und Ausschalten von Lichtquellen zwischen Tag und Nacht:</p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm">
+                                    <li>Lichtquelle platzieren.</li>
+                                    <li>Taste <code>[E]</code> gedrückt halten, auf <em>Scripted Light</em> klicken und als Namen <code>Nachtlicht</code> eintragen.</li>
+                                    <li>Das System prüft alle 5 Minuten den Tag/Nacht-Zyklus der Sphäre Anubia.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Sprachen lernen -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="message-square" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl text-cyan-300 m-0">Sprachen der Sphäre</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-3 text-base">
+                                <p>Neben den Völkersprachen existieren 4 besondere Natur- und Tiersprachen:</p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm">
+                                    <li><strong>Lupin:</strong> Sprache der Hunde- und Wolfsartigen (Knurren, Bellen).</li>
+                                    <li><strong>Felorisch:</strong> Sprache der Katzenartigen (Schnurren, Mauzen).</li>
+                                    <li><strong>Arakai:</strong> Sprache der gefiederten Wesen und Vögel.</li>
+                                    <li><strong>Nymvalisch:</strong> Uralte Kommunikation mit Naturgeistern, Pflanzen und Kleingetier.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                    <!-- Heiler-Befehle -->
+                    <div class="rift-panel p-0 overflow-hidden group rounded-sm">
+                        <details class="group">
+                            <summary class="flex items-center justify-between p-6 cursor-pointer bg-black/40 hover:bg-black/70 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <i data-lucide="cross" class="text-cyan-400"></i>
+                                    <h3 class="font-magic text-xl text-cyan-300 m-0">Heiler-Leitfaden & Befehle</h3>
+                                </div>
+                                <span class="text-cyan-400 group-open:rotate-180 transition-transform arrow-icon"><i data-lucide="chevron-down"></i></span>
+                            </summary>
+                            <div class="p-8 text-slate-300 leading-relaxed border-t border-cyan-950 bg-black/80 space-y-3 text-base">
+                                <p>Befehle für ordinierte Heiler im Knockout-System:</p>
+                                <ul class="list-disc pl-6 space-y-1 text-sm">
+                                    <li><code>/helfen</code> &rarr; Verletzten aufhelfen (Worträtsel-Eingabe).</li>
+                                    <li><code>/heilen</code> &rarr; Knockout-Stufe abbauen und Wunde versorgen.</li>
+                                    <li><code>/HBericht</code> &rarr; Öffnet das offizielle IC-Heilerbuch zur Falldokumentation.</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 8: CHAR (SEELEN-INSCHRIFT FORMULAR) ================= -->
+        <div id="char" class="page-container">
+            <div class="max-w-4xl mx-auto px-4 py-10">
+                <div class="text-center mb-10">
+                    <h2 class="font-magic text-5xl text-white text-glow-mana mb-3">Seelen-Inschrift</h2>
+                    <p class="font-magic text-cyan-400 tracking-[0.25em] uppercase text-xs">Offizielle Charakterkonzept-Vorlage von ARKANUM (Sphäre Anubia)</p>
+                </div>
+                
+                <div class="rift-panel p-6 sm:p-10 md:p-12 shadow-[0_15px_50px_rgba(0,0,0,0.85)] relative rounded-sm">
+                    <form id="characterForm" class="space-y-10 font-lore text-lg">
+                        
+                        <!-- 1. IDENTIFIKATION & STEAM (KAPITEL 8.1 SEKTION 9) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="key" class="w-5 h-5 text-cyan-400"></i> 1. Legitimation & Identifikation
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="relative group">
+                                    <label for="steamID" class="text-xs font-magic tracking-widest text-cyan-400 mb-2 flex justify-between items-center uppercase">
+                                        Steam64-ID (Exakt 17 Ziffern) *
+                                        <button type="button" onclick="openInfo('steam')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <input type="text" id="steamID" maxlength="17" placeholder="76561198..." class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors">
+                                </div>
+                                <div class="relative group">
+                                    <label for="discordID" class="text-xs font-magic tracking-widest text-cyan-400 mb-2 flex justify-between items-center uppercase">
+                                        Discord-Tag (Rufname) *
+                                        <button type="button" onclick="openInfo('discord')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <input type="text" id="discordID" placeholder="Nutzername" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. ALLGEMEINE INFORMATIONEN (KAPITEL 8.1 SEKTION 1) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="user" class="w-5 h-5 text-cyan-400"></i> 2. Allgemeine Informationen
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="relative group md:col-span-2">
+                                    <label for="charName" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Name des Charakters *
+                                        <button type="button" onclick="openInfo('name')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <input type="text" id="charName" placeholder="Vollständiger Name & Titel" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors">
+                                </div>
+                                <div class="relative group">
+                                    <label for="charGender" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Geschlecht *
+                                        <button type="button" onclick="openInfo('geschlecht')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <select id="charGender" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors cursor-pointer">
+                                        <option value="Männlich" class="bg-black text-white">Männlich</option>
+                                        <option value="Weiblich" class="bg-black text-white">Weiblich</option>
+                                        <option value="Divers" class="bg-black text-white">Divers</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                                <div class="relative group">
+                                    <label for="charAge" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Alter (FSK 18!) *
+                                        <button type="button" onclick="openInfo('alter')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <input type="number" id="charAge" min="18" placeholder="z. B. 28" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors">
+                                </div>
+                                <div class="relative group md:col-span-2">
+                                    <label for="charRace" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Blutlinie / Volk (Sphäre Anubia) *
+                                        <button type="button" onclick="openInfo('rasse')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <select id="charRace" onchange="onRaceChange()" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors cursor-pointer">
+                                        <option value="Menschen" class="bg-black text-white">Menschen (1,65m – 2,00m)</option>
+                                        <option value="Vampire" class="bg-black text-white">Vampire (1,60m – 2,00m)</option>
+                                        <option value="Zwerge" class="bg-black text-white">Zwerge (1,30m – 1,50m)</option>
+                                        <option value="Halbriesen" class="bg-black text-white">Halbriesen (2,10m – 2,40m)</option>
+                                        <option value="Minotauren" class="bg-black text-white">Minotauren (1,90m – 2,30m)</option>
+                                        <option value="Drachengeborene" class="bg-black text-white">Drachengeborene (1,85m – 2,10m)</option>
+                                        <option value="Orks" class="bg-black text-white">Orks (1,90m – 2,20m)</option>
+                                        <option value="Faun / Satyr" class="bg-black text-white">Faun / Satyr (1,60m – 1,90m)</option>
+                                        <option value="Mischwesen" class="bg-black text-white">Mischwesen (1,60m – 2,20m)</option>
+                                        <option value="Gestaltwandler" class="bg-black text-white">Gestaltwandler (Rassenmaß)</option>
+                                        <option value="Lykaner (Werwölfe)" class="bg-black text-white">Lykaner / Werwölfe (1,80m – 2,10m)</option>
+                                        <option value="Succubus / Incubus" class="bg-black text-white">Succubus / Incubus (1,60m – 1,90m)</option>
+                                        <option value="Halbdämon / Tiefling" class="bg-black text-white">Halbdämon / Tiefling (1,60m – 1,90m)</option>
+                                        <option value="Spektrale (Geister)" class="bg-black text-white">Spektrale / Geister (Variabel)</option>
+                                        <option value="Feenwesen (Eldarin)" class="bg-black text-white">Feenwesen / Eldarin (1,40m – 1,60m)</option>
+                                        <option value="Goblins" class="bg-black text-white">Goblins (1,20m – 1,40m)</option>
+                                        <option value="Halblinge" class="bg-black text-white">Halblinge (1,20m – 1,40m)</option>
+                                        <optgroup label="--- Elfen-Kompendium ---" class="bg-black text-cyan-300">
+                                            <option value="Waldelfen" class="bg-black text-white">Waldelfen (1,70m – 1,85m)</option>
+                                            <option value="Hochelfen" class="bg-black text-white">Hochelfen (1,70m – 2,00m)</option>
+                                            <option value="Dunkelelfen" class="bg-black text-white">Dunkelelfen (1,70m – 1,85m)</option>
+                                            <option value="Sonnenelfen" class="bg-black text-white">Sonnenelfen (1,65m – 2,00m)</option>
+                                            <option value="Mondelfen" class="bg-black text-white">Mondelfen (1,65m – 2,00m)</option>
+                                            <option value="Meereselfen" class="bg-black text-white">Meereselfen (1,65m – 2,00m)</option>
+                                            <option value="Astralelfen" class="bg-black text-amber-300">Astralelfen (Wiedergeboren / Team-Freigabe)</option>
+                                        </optgroup>
+                                        <optgroup label="--- Unbekanntes Blut ---" class="bg-black text-slate-400">
+                                            <option value="Neue Rasse" class="bg-black text-slate-300">-- Neue Rasse dokumentieren --</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Dynamische Rassen-Infobox -->
+                            <div id="race-info-box" class="mt-4 bg-black/60 p-4 border border-cyan-950 rounded-sm"></div>
+
+                            <!-- Körpergröße Slider (Rassenbegrenzt) -->
+                            <div class="mt-6 bg-black/40 p-4 border border-cyan-950 rounded-sm">
+                                <div class="flex justify-between items-center mb-2">
+                                    <label for="charHeight" class="text-xs font-magic tracking-widest text-cyan-400 uppercase">
+                                        Körpergröße (ToT-Skalierung) *
+                                    </label>
+                                    <span id="heightDisplay" class="font-magic text-sm text-white font-bold">1.80m</span>
+                                </div>
+                                <input type="range" id="charHeight" min="1.65" max="2.00" step="0.01" value="1.80" oninput="updateHeightDisplay(this.value)" class="w-full cursor-pointer">
+                            </div>
+
+                            <div id="customRaceContainer" class="hidden bg-black/60 border-l-2 border-cyan-500 p-4 mt-4">
+                                <label for="charCustomRaceDesc" class="text-xs font-magic tracking-widest text-cyan-400 mb-2 block uppercase">
+                                    Beschreibung des Vergessenen Blutes (Herkunft & Anatomie)
+                                </label>
+                                <textarea id="charCustomRaceDesc" rows="3" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors" placeholder="Beschreibe die Herkunft und Anatomie dieses unberücksichtigten Volkes..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- 3. AUSSEHEN & ATTACHMENTS (KAPITEL 8.1 SEKTION 2) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="eye" class="w-5 h-5 text-cyan-400"></i> 3. Aussehen & Anatomie
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="relative group">
+                                    <label for="charFeatures" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Besondere Merkmale (Narben, Tattoos, Augen)
+                                        <button type="button" onclick="openInfo('attachments')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <textarea id="charFeatures" rows="3" placeholder="z. B. Runentattoo über dem linken Auge, silbern leuchtende Iriden..." class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors"></textarea>
+                                </div>
+                                <div class="relative group">
+                                    <label for="charAttachments" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Benötigte Attachments & Shapeshifts (ToT)
+                                        <button type="button" onclick="openInfo('attachments')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <textarea id="charAttachments" rows="3" placeholder="z. B. Widderhörner, Fledermausflügel, Panther-Shapeshift..." class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. HANDWERK & BERUFE (KAPITEL 8.1 SEKTION 3) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="anvil" class="w-5 h-5 text-cyan-400"></i> 4. Handwerk & Berufe (2-Säulen-System)
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div class="relative group">
+                                    <label for="charMainProf" class="text-xs font-magic tracking-widest text-cyan-300 mb-2 flex justify-between items-center uppercase">
+                                        Säule 1: Monopolberuf *
+                                        <button type="button" onclick="openInfo('hauptberuf')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <select id="charMainProf" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors cursor-pointer">
+                                        <option value="Kein Hauptberuf" class="bg-black text-slate-400">- Kein Hauptberuf -</option>
+                                        <option value="Alchemist" class="bg-black text-white">Alchemist</option>
+                                        <option value="Bogner / Schreiner" class="bg-black text-white">Bogner / Schreiner</option>
+                                        <option value="Botaniker" class="bg-black text-white">Botaniker</option>
+                                        <option value="Feinschmied" class="bg-black text-white">Feinschmied</option>
+                                        <option value="Gastronom" class="bg-black text-white">Gastronom</option>
+                                        <option value="Jäger / Fischer" class="bg-black text-white">Jäger / Fischer</option>
+                                        <option value="Rüstschmied" class="bg-black text-white">Rüstschmied</option>
+                                        <option value="Schneider" class="bg-black text-white">Schneider</option>
+                                        <option value="Sklavenhändler" class="bg-black text-white">Sklavenhändler</option>
+                                        <option value="Tierzüchter" class="bg-black text-white">Tierzüchter</option>
+                                        <option value="Waffenschmied" class="bg-black text-white">Waffenschmied</option>
+                                    </select>
+                                </div>
+                                <div class="relative group">
+                                    <label for="charSubProf" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                        Säule 2: Freier RP-Beruf
+                                        <button type="button" onclick="openInfo('nebenberuf')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <input type="text" id="charSubProf" placeholder="z. B. Barde, Söldner, Schreiber..." class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors">
+                                </div>
+                                <div class="relative group">
+                                    <label for="charHealer" class="text-xs font-magic tracking-widest text-red-400 mb-2 flex justify-between items-center uppercase">
+                                        Heilkunde (Zusatz)
+                                        <button type="button" onclick="openInfo('heiler')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <select id="charHealer" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400 transition-colors cursor-pointer">
+                                        <option value="Nein" class="bg-black text-slate-300">Nein (Keine Heilkunst)</option>
+                                        <option value="Ja" class="bg-black text-red-300 font-bold">Ja (Zusatz-Heiler)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. STÄRKEN & SCHWÄCHEN (KAPITEL 8.1 SEKTION 4) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="shield-check" class="w-5 h-5 text-cyan-400"></i> 5. Stärken & Schwächen (Mindestens je 3)
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div class="space-y-3">
+                                    <label class="text-xs font-magic tracking-widest text-cyan-300 block uppercase">
+                                        Stärken deines Charakters (Mindestens 3) *
+                                    </label>
+                                    <input type="text" id="charStrength1" placeholder="1. Stärke (z. B. Hohe Standhaftigkeit bei Giften)" class="w-full p-2.5 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                    <input type="text" id="charStrength2" placeholder="2. Stärke (z. B. Scharfsinn im Entziffern alter Glyphen)" class="w-full p-2.5 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                    <input type="text" id="charStrength3" placeholder="3. Stärke (z. B. Furchtloser Wille in der Finsternis)" class="w-full p-2.5 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                </div>
+                                <div class="space-y-3">
+                                    <label class="text-xs font-magic tracking-widest text-red-300 block uppercase">
+                                        Schwächen deines Charakters (Mindestens 3) *
+                                    </label>
+                                    <input type="text" id="charWeakness1" placeholder="1. Schwäche (z. B. Klaustrophobie in engen Gängen)" class="w-full p-2.5 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                    <input type="text" id="charWeakness2" placeholder="2. Schwäche (z. B. Hitziges Temperament bei Provokation)" class="w-full p-2.5 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                    <input type="text" id="charWeakness3" placeholder="3. Schwäche (z. B. Körperliche Trägheit bei Kälte)" class="w-full p-2.5 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. WAFFENBEHERRSCHUNG (KAPITEL 8.1 SEKTION 5) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="sword" class="w-5 h-5 text-cyan-400"></i> 6. Waffenbeherrschung (Maximal 3 Waffen)
+                            </h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <input type="text" id="charWeapon1" placeholder="Waffe 1 (z. B. Langschwert)" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                <input type="text" id="charWeapon2" placeholder="Waffe 2 (z. B. Jagdbogen)" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                                <input type="text" id="charWeapon3" placeholder="Waffe 3 (z. B. Holzschild / Dolch)" class="w-full p-3 bg-transparent text-white border-b border-cyan-900/60 focus:border-cyan-400">
+                            </div>
+                        </div>
+
+                        <!-- 7. VORGESCHICHTE & MOTIVATION (KAPITEL 8.1 SEKTION 6) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="scroll" class="w-5 h-5 text-cyan-400"></i> 7. Vorgeschichte & Motivation für das Labyrinth
+                            </h3>
+                            <div class="relative group">
+                                <label for="charStory" class="text-xs font-magic tracking-widest text-slate-300 mb-2 flex justify-between items-center uppercase">
+                                    Kleine Vorgeschichte + Warum nimmt der Charakter dieses Abenteuer auf sich? *
+                                    <button type="button" onclick="openInfo('vorgeschichte')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                </label>
+                                <textarea id="charStory" rows="5" placeholder="Erzähle von deinen Wurzeln in Anubia (oder deinem Schritt durch den arkanen Riss) und was dich antreibt, die Hallen des Verrückten Magiers zu betreten..." class="w-full p-4 bg-black/40 border border-cyan-900/60 text-white focus:border-cyan-400 transition-colors"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- 8. MAGIEKONZEPT (KAPITEL 8.1 SEKTION 7) -->
+                        <div>
+                            <div class="flex items-center justify-between border-b border-cyan-950 pb-2 mb-6">
+                                <h3 class="font-magic text-xl text-white flex items-center gap-2">
+                                    <i data-lucide="sparkles" class="w-5 h-5 text-cyan-400"></i> 8. Magiekonzept
+                                </h3>
+                                <div class="flex items-center gap-3">
+                                    <label for="charHasMagic" class="text-xs font-magic text-cyan-400 uppercase">Magisch begabt?</label>
+                                    <select id="charHasMagic" onchange="toggleMagicSection()" class="p-1.5 bg-black text-cyan-300 border border-cyan-800 text-xs font-magic cursor-pointer">
+                                        <option value="Nein">Nein</option>
+                                        <option value="Ja">Ja</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div id="magicConceptContainer" class="hidden space-y-6 bg-black/50 p-6 border border-cyan-900/60 rounded-sm">
+                                <div id="magic-harmony-warning" class="hidden p-3 bg-red-950/60 border border-red-800 text-red-300 text-sm font-magic rounded-sm"></div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="charMagicKnown" class="text-xs font-magic tracking-widest text-slate-300 mb-2 block uppercase">Beherrscht Magie bereits?</label>
+                                        <select id="charMagicKnown" class="w-full p-2.5 bg-black text-white border-b border-cyan-900">
+                                            <option value="Ja">Ja</option>
+                                            <option value="Nein">Nein</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="charMagicLearn" class="text-xs font-magic tracking-widest text-slate-300 mb-2 block uppercase">Muss Magie erst lernen?</label>
+                                        <select id="charMagicLearn" class="w-full p-2.5 bg-black text-white border-b border-cyan-900">
+                                            <option value="Nein">Nein</option>
+                                            <option value="Ja">Ja</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="charMagic1" class="text-xs font-magic tracking-widest text-cyan-300 mb-2 block uppercase">Magieart 1 (Primär)</label>
+                                        <select id="charMagic1" onchange="validateMagicHarmony()" class="w-full p-2.5 bg-black text-white border-b border-cyan-900 cursor-pointer">
+                                            <option value="Keine Magie">- Keine Magie -</option>
+                                            <option value="Arkan">Arkan</option>
+                                            <option value="Feuer">Feuer</option>
+                                            <option value="Erde">Erde / Natur</option>
+                                            <option value="Wasser">Wasser</option>
+                                            <option value="Eis">Eis</option>
+                                            <option value="Luft">Luft</option>
+                                            <option value="Licht">Licht</option>
+                                            <option value="Schatten">Schatten / Dunkel</option>
+                                            <option value="Blut">Blut</option>
+                                            <option value="Elementar">Elementar</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="charMagic2" class="text-xs font-magic tracking-widest text-cyan-300 mb-2 block uppercase">Magieart 2 (Sekundär)</label>
+                                        <select id="charMagic2" onchange="validateMagicHarmony()" class="w-full p-2.5 bg-black text-white border-b border-cyan-900 cursor-pointer">
+                                            <option value="Keine Magie">- Keine Magie -</option>
+                                            <option value="Arkan">Arkan</option>
+                                            <option value="Feuer">Feuer</option>
+                                            <option value="Erde">Erde / Natur</option>
+                                            <option value="Wasser">Wasser</option>
+                                            <option value="Eis">Eis</option>
+                                            <option value="Luft">Luft</option>
+                                            <option value="Licht">Licht</option>
+                                            <option value="Schatten">Schatten / Dunkel</option>
+                                            <option value="Blut">Blut</option>
+                                            <option value="Elementar">Elementar</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label for="charMagicExhaustion" class="text-xs font-magic tracking-widest text-red-300 mb-2 flex justify-between items-center uppercase">
+                                        Negative Begleiterscheinungen bei starkem Magiewirken *
+                                        <button type="button" onclick="openInfo('begleiter')" class="hover:text-white transition-colors opacity-70"><i data-lucide="info" class="w-4 h-4"></i></button>
+                                    </label>
+                                    <textarea id="charMagicExhaustion" rows="3" placeholder="z. B. Nasenbluten, Zittern, Mangelerscheinungen, Kopfschmerzen..." class="w-full p-3 bg-black/60 border border-red-950 text-white focus:border-red-500"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. VISION & ZIELE (KAPITEL 8.1 SEKTION 8) -->
+                        <div>
+                            <h3 class="font-magic text-xl text-white border-b border-cyan-950 pb-2 mb-6 flex items-center gap-2">
+                                <i data-lucide="compass" class="w-5 h-5 text-cyan-400"></i> 9. Vision & Ziele (Optional)
+                            </h3>
+                            <textarea id="charGoals" rows="3" placeholder="Besondere Vorstellungen, geplante Bündnisse oder persönliche Plots für deinen Charakter..." class="w-full p-3 bg-black/40 border border-cyan-900/60 text-white focus:border-cyan-400"></textarea>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                            <button type="button" onclick="copyCharacter()" class="w-full sm:w-2/3 bg-black/80 hover:bg-cyan-950 border border-cyan-500 text-cyan-300 hover:text-white font-magic text-lg py-4 tracking-widest transition-all uppercase flex justify-center items-center gap-3 shadow-[0_0_20px_rgba(0,229,255,0.25)] hover:shadow-[0_0_35px_rgba(0,229,255,0.5)]">
+                                <i data-lucide="copy" class="w-5 h-5"></i> Inschrift in den Geist kopieren
+                            </button>
+                            <button type="button" onclick="clearCharacterDraft()" class="w-full sm:w-1/3 bg-red-950/30 hover:bg-red-900/40 border border-red-900/60 text-red-400 hover:text-red-300 font-magic text-sm py-4 tracking-widest transition-all uppercase flex justify-center items-center gap-2 shadow-lg">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i> Entwurf leeren
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <p id="copy-msg" class="text-center font-magic tracking-widest text-base mt-6 opacity-0 transition-opacity"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 9: CONNECT (ERWACHEN) ================= -->
+        <div id="connect" class="page-container">
+            <div class="py-12 md:py-20 flex flex-col items-center px-4 relative">
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-3xl h-[600px] bg-cyan-500/10 blur-[180px] rounded-full pointer-events-none z-0"></div>
+                
+                <h2 class="font-magic text-5xl md:text-6xl text-white mb-12 text-glow-mana text-center relative z-10">Das Erwachen</h2>
+                <div class="grid md:grid-cols-2 gap-8 max-w-4xl w-full relative z-10">
+                    
+                    <!-- Stimmen Card -->
+                    <div class="rift-panel p-8 text-center rounded-sm">
+                        <div class="w-16 h-16 mx-auto border border-white/20 rounded-full flex items-center justify-center mb-5 bg-black/60">
+                            <i data-lucide="message-square" class="w-7 h-7 text-white/80"></i>
+                        </div>
+                        <h3 class="font-magic text-xl text-white uppercase tracking-widest mb-2">Halle der Stimmen (Discord)</h3>
+                        <p class="text-slate-300 font-lore text-base mb-6">
+                            Die Einberufung der Community beginnt in Kürze. Bereite jetzt dein Seelen-Konzept vor.
+                        </p>
+                        <span class="inline-block px-4 py-1.5 bg-white/5 border border-cyan-400/40 text-cyan-300 text-xs font-magic tracking-widest uppercase rounded">
+                            Pforte öffnet in Kürze
+                        </span>
+                    </div>
+                    
+                    <!-- Server Name Card -->
+                    <div class="rift-panel p-8 text-center hover:border-white/30 transition-all group rounded-sm">
+                        <div class="w-16 h-16 mx-auto border border-white/20 rounded-full flex items-center justify-center mb-5 group-hover:scale-105 transition-transform bg-black/60">
+                            <i data-lucide="compass" class="w-7 h-7 text-white/80"></i>
+                        </div>
+                        <h3 class="font-magic text-xl text-white uppercase tracking-widest mb-2">Das Portal</h3>
+                        <p class="text-slate-300 font-lore text-base mb-5">Suche im Conan Exiles Serverbrowser nach dem Namen der Sphäre:</p>
+                        <div class="bg-black p-3.5 border border-white/15 font-lore text-base text-slate-200 mb-4 flex justify-between items-center tracking-widest rounded-sm">
+                            <span class="text-white font-semibold">ARKANUM – [GER] Conan Voice RP</span>
+                            <button aria-label="Servername kopieren" onclick="copyServerName()" class="hover:text-cyan-300 transition-colors text-white/70 cursor-pointer"><i data-lucide="copy" class="w-4 h-4"></i></button>
+                        </div>
+                        <p id="ip-msg" class="text-xs font-magic tracking-widest text-cyan-400 opacity-0 h-4 transition-opacity uppercase">In den Geist geschrieben</p>
+                    </div>
+                </div>
+
+                <div class="mt-14 flex justify-center w-full relative z-10">
+                    <button onclick="switchPage('char')" class="group relative overflow-hidden px-10 py-4 bg-white text-black font-magic text-base md:text-lg uppercase tracking-[0.2em] transition-all flex items-center gap-3 shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:bg-cyan-300 rounded-sm cursor-pointer">
+                        <i data-lucide="feather" class="w-5 h-5 text-black"></i>
+                        <span>Zur Seelen-Inschrift</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 10: IMPRESSUM ================= -->
+        <div id="legal-imprint" class="page-container">
+            <div class="max-w-3xl mx-auto px-4 py-10">
+                <h2 class="font-magic text-4xl text-center text-cyan-400 mb-8">Impressum</h2>
+                <div class="rift-panel p-8 md:p-10 text-base font-sans text-slate-300 leading-relaxed rounded-sm">
+                    <p class="text-xs text-slate-400 mb-6">Angaben gemäß § 5 DDG (ehemals TMG) / § 18 MStV</p>
+                    
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">Verantwortlich für den Inhalt</h3>
+                    <p class="border-l-2 border-cyan-500 pl-4 py-1 mb-6 text-slate-300 font-lore text-lg">
+                        Dennis Heitz<br>
+                        Am Ehrenkamp 25<br>
+                        33659 Bielefeld<br>
+                        Deutschland
+                    </p>
+                    
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">Kontakt</h3>
+                    <p class="border-l-2 border-cyan-500 pl-4 py-1 mb-6 text-slate-300 font-lore text-lg">
+                        E-Mail: info@arkanum-rp.de<br>
+                        Discord: dennis2608
+                    </p>
+
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">Projekt-Hinweis</h3>
+                    <p class="mb-6 font-lore text-base">Dies ist ein rein privates, nicht-kommerzielles Fan-Projekt im Rahmen des Spiels „Conan Exiles“. Wir verfolgen keinerlei finanzielle Interessen. Etwaige freiwillige Spenden fließen ausnahmslos in die Deckung der Server- und Infrastrukturkosten.</p>
+
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">Haftung für Links</h3>
+                    <p class="font-lore text-base">Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PAGE 11: DATENSCHUTZ ================= -->
+        <div id="legal-privacy" class="page-container">
+            <div class="max-w-3xl mx-auto px-4 py-10">
+                <h2 class="font-magic text-4xl text-center text-cyan-400 mb-8">Datenschutzerklärung</h2>
+                <div class="rift-panel p-8 md:p-10 text-base font-sans text-slate-300 leading-relaxed rounded-sm">
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">1. Datenschutz auf einen Blick</h3>
+                    <p class="mb-6 font-lore text-base">Die folgenden Hinweise geben einen einfachen Überblick darüber, was mit Ihren personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten sind alle Daten, mit denen Sie persönlich identifiziert werden können.</p>
+
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">2. Hosting & Bereitstellung</h3>
+                    <p class="mb-6 font-lore text-base">Diese Website wird als statisches Portal gehostet. Beim Aufruf der Seiten erfassen die Server automatisiert Logfiles inklusive der gekürzten IP-Adresse zur Sicherstellung des Betriebs und Abwehr von Cyberangriffen (Art. 6 Abs. 1 lit. f DSGVO).</p>
+                    
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">3. Lokale Speicherung (LocalStorage)</h3>
+                    <p class="mb-3 font-lore text-base"><strong class="text-white">Keine Tracking-Cookies:</strong> Diese Website verwendet keine Werbe- oder Analyse-Cookies. Zur Speicherung Ihrer Interaktionen (Portal-Animation, Entwurf Ihres Charakterkonzepts und Bestätigung des Hinweises) wird ausschließlich der lokale Speicher (<code>LocalStorage</code>) Ihres eigenen Endgeräts genutzt:</p>
+                    <ul class="list-disc pl-5 mb-6 text-sm font-mono text-cyan-300">
+                        <li><code>hasEnteredArkanum</code> (Portal-Status)</li>
+                        <li><code>visitCount</code> (Zähler für Begrüßung)</li>
+                        <li><code>arkanum_char_draft</code> (Gespeicherter Charakter-Entwurf)</li>
+                        <li><code>arkanumProtocolAccepted</code> (Hinweis-Bestätigung)</li>
+                        <li><code>arkanum_cursor_archetype</code> (Gewählte Cursor-Einstimmung: Arkanist, Krieger oder Standard)</li>
+                        <li><code>arkanum_ghost_kills</code> (Easter Egg: Zähler gebannter Labyrinth-Geister)</li>
+                    </ul>
+
+                    <h3 class="font-bold text-lg text-white mb-2 font-magic">4. Charakter-Generator & Clipboard</h3>
+                    <p class="mb-6 font-lore text-base">Das Formular „Seelen-Inschrift“ speichert keinerlei Daten auf einem Webserver. Beim Klick auf „Inschrift kopieren“ wird das fertige Konzept ausschließlich in die lokale Zwischenablage (Clipboard) Ihres Gerätes übertragen, damit Sie es in Ihr Discord-Ticket einfügen können.</p>
+
+                    <div class="mt-8 pt-6 border-t border-cyan-950 text-center">
+                        <button onclick="resetAllLocalData()" class="text-cyan-400 hover:text-white font-magic text-xs tracking-widest uppercase transition-colors cursor-pointer">[ Lokalen Speicher & Status zurücksetzen ]</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FOOTER STATUS BAR -->
+    <footer id="main-footer" style="display: none;" class="fixed bottom-0 left-0 w-full h-10 bg-void-950/90 border-t border-cyan-950 z-40 flex items-center justify-between px-6 text-[11px] uppercase font-magic tracking-widest text-slate-400">
+        <div class="flex gap-4 sm:gap-6 items-center">
+            <span>Sphäre Anubia: <span class="text-cyan-400 font-bold">Resonanz</span></span>
+            <span class="hidden sm:inline">Labyrinth: <span id="rift-val" class="text-sky-300">Aktiv</span></span>
+            <!-- Easter Egg Ghost Counter Badge (nur sichtbar ab 1 Kill) -->
+            <div id="footer-ghost-badge" class="hidden items-center gap-1.5 border border-red-500/40 px-2.5 py-0.5 rounded bg-red-950/60 text-red-300 text-[10px] shadow-[0_0_12px_rgba(239,68,68,0.25)] transition-all" title="Im sichtbaren Blickfeld gebannte Geister">
+                <i data-lucide="ghost" class="w-3.5 h-3.5 text-red-400 animate-pulse"></i>
+                <span>Geister: <strong id="footer-ghost-count" class="text-white font-bold">0</strong></span>
+            </div>
+        </div>
+        <div class="flex gap-5 sm:gap-6 items-center">
+            <!-- Archetyp Cursor Umschalter -->
+            <button id="footer-cursor-btn" onclick="openArchetypeModal()" class="flex items-center gap-1.5 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer border border-white/10 hover:border-cyan-400/40 px-2 py-0.5 rounded bg-black/40" title="Cursor-Einstimmung anpassen">
+                <i id="footer-cursor-icon" data-lucide="wand-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span id="footer-cursor-label" class="text-[10px]">Arkanist</span>
+            </button>
+            <button onclick="switchPage('legal-imprint')" class="hover:text-cyan-300 transition-colors">Impressum</button>
+            <button onclick="switchPage('legal-privacy')" class="hover:text-cyan-300 transition-colors">Datenschutz</button>
+        </div>
+    </footer>
+
+    <!-- COOKIE / LOCALSTORAGE BANNER -->
+    <div id="rift-cookie-banner" class="fixed bottom-12 right-4 md:bottom-14 md:right-8 max-w-md bg-void-950 border border-cyan-800/80 p-5 z-[70] rounded-sm shadow-[0_10px_35px_rgba(0,0,0,0.9)] transform translate-y-[150%] transition-transform duration-700 hidden font-sans">
+        <h3 class="font-magic text-white text-base mb-2 flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-cyan-400"></i> Lokale Speicherung
+        </h3>
+        <p class="text-xs text-slate-300 mb-4 leading-relaxed font-lore">
+            Diese Website nutzt den lokalen Browserspeicher (LocalStorage) für das Portal-Intro, die Begrüßung und die automatische Speicherung deines Charakter-Entwurfs. Es werden keine Werbe- oder Tracking-Cookies eingesetzt.
+        </p>
+        <div class="flex gap-3">
+            <button onclick="switchPage('legal-privacy')" class="flex-1 bg-black/60 hover:bg-black text-slate-300 border border-slate-700 font-magic text-xs py-2 transition-colors uppercase">
+                Datenschutz
+            </button>
+            <button onclick="acceptCookies()" class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-black font-magic font-bold text-xs py-2 transition-colors shadow-sm uppercase">
+                Verstanden
+            </button>
+        </div>
+    </div>
+
+    <!-- ================= ARKANUM ARCHETYP CURSOR WAHL MODAL ================= -->
+    <div id="archetype-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md hidden" onclick="handleArchetypeModalBackdrop(event)">
+        <div class="rift-panel max-w-xl w-full p-6 sm:p-8 text-center rounded-sm border border-white/15 relative shadow-[0_0_50px_rgba(0,0,0,0.95)]">
+            <button aria-label="Modal schließen" onclick="closeArchetypeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors p-1.5 cursor-pointer rounded border border-transparent hover:border-white/20">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+            <h3 class="font-magic text-2xl md:text-3xl text-white tracking-widest uppercase mb-2">
+                Wähle deine Einstimmung
+            </h3>
+            <p class="text-slate-400 font-lore text-sm mb-6 max-w-md mx-auto leading-relaxed">
+                (Reine visuelle Einstimmung für Mauszeiger & Klickeffekte – hat keinerlei Auswirkung auf deine spätere Charaktererstellung oder das Ingame-RP)
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mb-6 text-left">
+                <!-- Magier Wahl -->
+                <button onclick="setCursorArchetype('mage')" class="p-5 sm:p-6 bg-black/60 border border-cyan-500/40 hover:border-cyan-400 hover:bg-cyan-950/25 transition-all group cursor-pointer rounded-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-full border border-cyan-400/40 flex items-center justify-center bg-cyan-950/30 text-cyan-400 mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="wand-2" class="w-6 h-6"></i>
+                        </div>
+                        <div class="font-magic text-lg text-white uppercase tracking-wider mb-1">Pfad des Arkanisten</div>
+                        <div class="text-xs text-slate-300 font-lore leading-relaxed mb-3">Zauberstab-Cursor • Leuchtender Fokus-Hover • Magischer Einschlag</div>
+                    </div>
+                    <div class="pt-2 border-t border-cyan-500/20 text-[10px] font-magic text-cyan-400 uppercase tracking-widest flex items-center justify-between">
+                        <span>✦ Magier-Cursor (Dual-State)</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </button>
+
+                <!-- Barbar Wahl -->
+                <button onclick="setCursorArchetype('barbarian')" class="p-5 sm:p-6 bg-black/60 border border-white/20 hover:border-cyan-400 hover:bg-white/5 transition-all group cursor-pointer rounded-sm flex flex-col justify-between">
+                    <div>
+                        <div class="w-12 h-12 rounded-full border border-slate-400/40 flex items-center justify-center bg-white/5 text-slate-200 mb-4 group-hover:scale-110 transition-transform">
+                            <i data-lucide="axe" class="w-6 h-6"></i>
+                        </div>
+                        <div class="font-magic text-lg text-white uppercase tracking-wider mb-1">Pfad des Kriegers</div>
+                        <div class="text-xs text-slate-300 font-lore leading-relaxed mb-3">Kriegsaxt-Cursor • Ausholende Schlag-Haltung • Metallischer Klingen-Clang</div>
+                    </div>
+                    <div class="pt-2 border-t border-white/10 text-[10px] font-magic text-slate-300 uppercase tracking-widest flex items-center justify-between">
+                        <span>⚔ Barbaren-Cursor (Dual-State)</span>
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </div>
+                </button>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <button onclick="setCursorArchetype('default')" class="text-xs font-magic text-slate-500 hover:text-slate-300 tracking-widest uppercase transition-colors cursor-pointer py-1.5 px-3 border border-transparent hover:border-white/10 rounded">
+                    Standard-Cursor beibehalten
+                </button>
+                <button onclick="resetCursorArchetype(); closeArchetypeModal();" class="text-xs font-magic text-red-400/80 hover:text-red-300 tracking-widest uppercase transition-colors cursor-pointer py-1.5 px-3 border border-transparent hover:border-red-900/40 rounded">
+                    Auswahl auf Null zurücksetzen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= RACE DETAIL MODAL (ARCANE CODEX) ================= -->
+    <div id="race-modal" class="fixed inset-0 z-[100] bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6" onclick="handleRaceModalBackdrop(event)">
+        <div class="modal-card max-w-4xl w-full max-h-[92vh] flex flex-col bg-[#050508] border border-white/15 shadow-[0_0_60px_rgba(0,0,0,0.95)] rounded-sm relative overflow-hidden">
+            <!-- Modal Header -->
+            <div id="modal-header-bg" class="p-6 sm:p-8 border-b border-white/10 relative flex items-start justify-between gap-4 bg-gradient-to-b from-white/5 to-transparent">
+                <div class="flex items-center gap-4 sm:gap-5">
+                    <div id="modal-icon-container" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-cyan-400 flex items-center justify-center bg-black/70 shadow-[0_0_25px_rgba(0,229,255,0.3)] shrink-0">
+                        <i id="modal-icon" data-lucide="shield" class="w-7 h-7 sm:w-8 sm:h-8 text-cyan-300"></i>
+                    </div>
+                    <div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <h3 id="modal-title" class="font-magic text-2xl sm:text-4xl text-white tracking-widest uppercase">Menschen</h3>
+                            <span id="modal-category" class="text-[10px] font-magic uppercase px-2 py-0.5 border border-white/20 text-slate-300 bg-white/5 rounded">Humanoide</span>
+                        </div>
+                        <p id="modal-subtitle" class="text-sm sm:text-base font-lore italic text-slate-300">Die Willensstarken & Schicksalsschmiede</p>
+                    </div>
+                </div>
+                <button aria-label="Kodex schließen" onclick="closeRaceModal()" class="text-slate-400 hover:text-white transition-colors p-2 cursor-pointer rounded border border-transparent hover:border-white/20">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <div id="modal-body" class="p-6 sm:p-8 overflow-y-auto space-y-6 font-lore flex-grow text-slate-200">
+                <!-- VIEW 1: STANDARD RACE VIEW -->
+                <div id="modal-standard-view" class="space-y-6">
+                    <!-- Back to Elfen-Kompendium Button (shown only when viewing an elven subrace) -->
+                    <div id="modal-subrace-back-banner" class="hidden">
+                        <button onclick="openRaceDetails('Elfen', event)" class="inline-flex items-center gap-2 text-xs font-magic text-cyan-300 hover:text-white bg-cyan-950/40 hover:bg-cyan-900/60 border border-cyan-400/40 px-3.5 py-2 rounded transition-all cursor-pointer">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                            <span>← Zurück zum Elfen-Kompendium (7 Stämme)</span>
+                        </button>
+                    </div>
+
+                    <!-- Info Badges Bar -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 font-magic text-xs">
+                        <div class="bg-black/60 border border-white/10 p-3 rounded flex items-center gap-2.5">
+                            <i data-lucide="ruler" class="w-4 h-4 text-cyan-400"></i>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Offizielle Körpergröße</span>
+                                <span id="modal-height" class="text-white font-semibold">1,65m – 2,00m</span>
+                            </div>
+                        </div>
+                        <div class="bg-black/60 border border-white/10 p-3 rounded flex items-center gap-2.5">
+                            <i data-lucide="wand-2" class="w-4 h-4 text-cyan-400"></i>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Erlaubte Magieformen</span>
+                                <span id="modal-magic-count" class="text-white font-semibold">Max. 2 Affinitäten</span>
+                            </div>
+                        </div>
+                        <div class="bg-black/60 border border-white/10 p-3 rounded flex items-center gap-2.5">
+                            <i data-lucide="scroll" class="w-4 h-4 text-cyan-400"></i>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Status in Anubia</span>
+                                <span id="modal-status" class="text-white font-semibold">Reguläre Startrasse</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lore / Chronik -->
+                    <div class="bg-black/40 border border-white/10 p-5 rounded">
+                        <h4 class="font-magic text-white text-base tracking-widest uppercase mb-2 flex items-center gap-2">
+                            <i data-lucide="book-open" class="w-4 h-4 text-cyan-400"></i> Chronik & Wesen in der Sphäre
+                        </h4>
+                        <p id="modal-lore" class="text-base sm:text-lg leading-relaxed text-slate-300"></p>
+                    </div>
+
+                    <!-- Physische Merkmale & Magie Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Physische Merkmale -->
+                        <div class="bg-black/40 border border-white/10 p-5 rounded">
+                            <h4 class="font-magic text-white text-base tracking-widest uppercase mb-2 flex items-center gap-2">
+                                <i data-lucide="user-check" class="w-4 h-4 text-cyan-400"></i> Physische Gestalt
+                            </h4>
+                            <p id="modal-traits" class="text-base leading-relaxed text-slate-300"></p>
+                        </div>
+
+                        <!-- Magie-Affinitäten -->
+                        <div class="bg-black/40 border border-white/10 p-5 rounded">
+                            <h4 class="font-magic text-white text-base tracking-widest uppercase mb-2 flex items-center gap-2">
+                                <i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> Magische Resonanzen
+                            </h4>
+                            <div id="modal-magic-pills" class="flex flex-wrap gap-1.5 mt-2"></div>
+                        </div>
+                    </div>
+
+                    <!-- Besondere Rollenspiel-Pflichten & Gesetze -->
+                    <div class="bg-amber-950/20 border border-amber-500/30 p-5 rounded">
+                        <h4 class="font-magic text-amber-300 text-base tracking-widest uppercase mb-2 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i> Gesetze & Rollenspiel-Vorgaben
+                        </h4>
+                        <p id="modal-rules" class="text-base leading-relaxed text-amber-100/90"></p>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: ELFEN-KOMPENDIUM HUB VIEW (Shown when raceKey === 'Elfen') -->
+                <div id="modal-elfen-hub-view" class="space-y-6 hidden">
+                    <!-- Intro Banner -->
+                    <div class="bg-gradient-to-r from-cyan-950/40 via-black to-blue-950/30 border border-cyan-400/25 p-5 sm:p-6 rounded-sm space-y-3">
+                        <div class="flex items-center gap-2 text-cyan-300 font-magic text-sm tracking-wider uppercase">
+                            <i data-lucide="crown" class="w-4 h-4"></i> Das Elfen-Kompendium • 7 Erhabene Stämme
+                        </div>
+                        <p class="text-slate-300 text-base sm:text-lg leading-relaxed">
+                            Die älteste Hochkultur der Sphäre Anubia. Elfen sind hochgradig magieaffin, langlebig und verehren keinesfalls menschliche Götter. Das Volk gliedert sich in <strong>7 eigenständige Stämme</strong> mit individuellen Kulturen, Riten und Magietraditionen.
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 text-xs font-magic">
+                            <div class="bg-white/5 border border-white/10 p-2.5 rounded text-center">
+                                <span class="text-cyan-400 block font-bold text-sm">7 Stämme</span>
+                                <span class="text-slate-400 text-[10px]">Autonome Reiche & Haine</span>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 p-2.5 rounded text-center">
+                                <span class="text-cyan-400 block font-bold text-sm">Arkaner Stolz</span>
+                                <span class="text-slate-400 text-[10px]">Keine menschl. Götter</span>
+                            </div>
+                            <div class="bg-white/5 border border-white/10 p-2.5 rounded text-center">
+                                <span class="text-cyan-400 block font-bold text-sm">1,65m – 2,00m</span>
+                                <span class="text-slate-400 text-[10px]">Verbindliches Rassenmaß</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subraces Header -->
+                    <div>
+                        <h4 class="font-magic text-white text-base tracking-widest uppercase mb-1 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4 text-cyan-400"></i> Die 7 Elfenstämme im Detail
+                        </h4>
+                        <p class="text-xs text-slate-400 font-lore">Klicke auf einen Stamm, um dessen einzigartigen Siegel-Effekt zu erwecken und alle Vorgaben zu öffnen:</p>
+                    </div>
+
+                    <!-- 7 Subraces Grid inside Modal -->
+                    <div id="modal-elven-subraces-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <!-- Populated dynamically via script.js -->
+                    </div>
+
+                    <!-- Strikte Gesetze Notice -->
+                    <div class="bg-amber-950/20 border border-amber-500/30 p-4 rounded text-xs font-lore text-amber-200/90 space-y-1.5">
+                        <div class="font-magic font-bold text-amber-300 flex items-center gap-1.5 uppercase">
+                            <i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-amber-400"></i> Wichtige Lore-Gesetze für Elfen-Charaktere
+                        </div>
+                        <p>• <strong>Dunkelelfen:</strong> Der Begriff „Drow“ existiert in Anubia nicht. Dunkelelfen dürfen NIEMALS Lichtmagie erlernen oder anwenden!</p>
+                        <p>• <strong>Astralelfen:</strong> Reine RP-Sonderform (kosmisch transformiert nach Schicksalsereignissen). Nicht als Startrasse ohne Team-Freigabe.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="p-4 sm:p-5 border-t border-white/10 bg-black/60 flex flex-wrap items-center justify-between gap-3 font-magic text-xs">
+                <div class="flex items-center gap-2">
+                    <button id="modal-prev-btn" onclick="navigateRaceModal(-1)" class="px-3.5 py-2.5 bg-white/5 border border-white/15 text-slate-300 hover:text-white hover:border-white/30 uppercase tracking-wider rounded transition-colors flex items-center gap-2 cursor-pointer">
+                        <i data-lucide="arrow-left" class="w-4 h-4"></i> <span class="hidden sm:inline">Vorheriges</span>
+                    </button>
+                    <button id="modal-next-btn" onclick="navigateRaceModal(1)" class="px-3.5 py-2.5 bg-white/5 border border-white/15 text-slate-300 hover:text-white hover:border-white/30 uppercase tracking-wider rounded transition-colors flex items-center gap-2 cursor-pointer">
+                        <span class="hidden sm:inline">Nächstes</span> <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <button onclick="closeRaceModal()" class="px-4 py-2.5 text-slate-400 hover:text-white transition-colors uppercase tracking-wider cursor-pointer">
+                        Schließen
+                    </button>
+                    <button id="modal-select-btn" onclick="selectCurrentRaceInCharGen()" class="px-6 py-2.5 bg-white text-black font-semibold hover:bg-cyan-300 transition-colors uppercase tracking-widest rounded flex items-center gap-2 cursor-pointer shadow-[0_0_15px_rgba(255,255,255,0.2)]">
+                        <i data-lucide="feather" class="w-4 h-4 text-black"></i>
+                        <span>Im Charakterbogen wählen</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dynamic Race Effect Stage -->
+    <div id="race-effect-stage"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
